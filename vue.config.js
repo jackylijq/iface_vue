@@ -25,7 +25,17 @@ module.exports = {
       },
     },
   },
-  devServer: {},
+  devServer: {
+    proxy: {
+      '/iftest': {
+        target: 'http://10.10.64.41:8080/iftest',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/iftest': '',
+        },
+      },
+    },
+  },
   // node_modules依赖项es6语法未转换问题
   transpileDependencies: ['vuex-persist'],
 }

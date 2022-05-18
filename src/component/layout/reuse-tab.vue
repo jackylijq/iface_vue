@@ -14,13 +14,13 @@
       <swiper-slide v-for="(item, index) in histories" :key="item.path">
         <router-link
           class="reuse-tab-item"
-          :class="item.path === $route.path ? 'active' : ''"
+          :class="item.path === $route.fullPath ? 'active' : ''"
           :to="item.path"
           @contextmenu.prevent="onTags(index, $event)"
         >
           <i v-if="!filterIcon(stageList[item.stageId].icon)" :class="stageList[item.stageId].icon"></i>
-          <img v-else :src="stageList[item.stageId].icon" style="width:16px;" />
-          <span style="padding: 0 5px;">{{ stageList[item.stageId].title }}</span>
+          <img v-else :src="stageList[item.stageId].icon" style="width: 16px" />
+          <span style="padding: 0 5px">{{ stageList[item.stageId].title }}</span>
           <span class="el-icon-close" @click.prevent.stop="close(index)" />
         </router-link>
       </swiper-slide>
@@ -42,6 +42,8 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import SwiperCore, { Mousewheel } from 'swiper'
 
 import 'swiper/swiper.scss'
+import router from '@/router'
+import { unref } from 'vue'
 
 SwiperCore.use([Mousewheel])
 
@@ -62,14 +64,14 @@ export default {
     $route(to) {
       // 对路由变化作出响应...
       const { histories } = this
-      const flag = histories.find(item => item.path === to.path)
+      const flag = histories.find(item => item.path === to.fullPath)
       if (flag) {
         return
       }
 
       const ele = {}
       ele.stageId = to.name
-      ele.path = to.path
+      ele.path = to.fullPath
       ele.routePath = to.matched[to.matched.length - 1].path
       this.histories = [ele, ...histories]
     },
@@ -119,6 +121,10 @@ export default {
     emitter.on('clearTap', () => {
       this.histories = []
     })
+    emitter.on('custom-close', () => {
+      const index = this.histories.findIndex(v => v.path === unref(router.currentRoute).fullPath)
+      if (index > -1) this.close(index)
+    })
   },
   methods: {
     init() {
@@ -132,7 +138,6 @@ export default {
         localHistory = window.localStorage.getItem('history') || '[]'
         localHistory = JSON.parse(localHistory)
       }
-
       localHistory.forEach(item => {
         let findResult
         if (item.name) {
@@ -201,7 +206,7 @@ export default {
     },
     close(index) {
       // 检测是否是当前页, 如果是当前页则自动切换路由
-      if (this.$route.path === this.histories[index].path) {
+      if (this.$route.fullPath === this.histories[index].path) {
         if (index > 0) {
           this.$router.push(this.histories[index - 1].path)
         } else if (this.histories.length > 1) {

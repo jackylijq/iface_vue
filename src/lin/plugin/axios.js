@@ -175,6 +175,7 @@ _axios.interceptors.response.use(
     if (error.code === 'ECONNABORTED' && error.message.indexOf('timeout') !== -1) {
       ElMessage.warning('请求超时')
     }
+    return {}
     return Promise.reject(error)
   },
 )

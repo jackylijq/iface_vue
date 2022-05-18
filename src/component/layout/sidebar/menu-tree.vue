@@ -27,7 +27,6 @@ export default {
       required: true,
     },
   },
-
   methods: {
     navigateTo(path) {
       this.$router.push({ path })

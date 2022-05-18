@@ -1,7 +1,7 @@
 <template>
   <div class="app-sidebar">
     <logo :elMenuCollapse="elMenuCollapse" />
-    <div style="margin-bottom:50px">
+    <div style="margin-bottom: 50px">
       <search></search>
       <el-menu
         ref="meun"
@@ -49,7 +49,7 @@ export default {
      */
     defaultActive() {
       const route = this.$route
-      return route.path
+      return route.meta.activePath || route.path
     },
     ...mapGetters(['sidebarList']),
   },
