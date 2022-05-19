@@ -20,6 +20,17 @@ const atomicCasesRouter = [
     icon: 'iconfont icon-iconset0103',
     order: 2,
   },
+  {
+    title: '原子用例编辑',
+    type: 'view',
+    name: Symbol('atomiccase-edit'),
+    activePath: '/atomiccase/list',
+    route: '/atomiccase/edit',
+    filePath: 'view/atomicCases/atomic-cases-edit.vue',
+    inNav: false,
+    icon: 'iconfont icon-iconset0103',
+    order: 2,
+  },
 ]
 
 export default atomicCasesRouter

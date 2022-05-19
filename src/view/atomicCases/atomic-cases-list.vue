@@ -1,13 +1,7 @@
 <template>
   <div class="atomic-cases-list">
-    <treeTable
-      :treeConfig="{ ...treeConfig, defaultExpandedKeys, currentNodeKey }"
-      :searchConfig="searchConfig"
-      @create="btnCreate"
-      :pageConfig="computedPageConfig"
-      @current-change="currentChange"
-      @size-change="sizeChange"
-    >
+    <treeTable :treeConfig="{ ...treeConfig, defaultExpandedKeys, currentNodeKey }" :searchConfig="searchConfig"
+      @create="btnCreate" :pageConfig="computedPageConfig" @current-change="currentChange" @size-change="sizeChange">
       <template #table>
         <el-table :data="tableData" stripe style="width: 100%">
           <!-- <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
@@ -19,9 +13,9 @@
           <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" />
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
           <el-table-column prop="address" label="操作" width="210">
-            <template #default>
+            <template #default="scope">
               <el-button type="primary" text size="small">测试</el-button>
-              <el-button size="small">编辑</el-button>
+              <el-button size="small" @click="editClick(scope)">编辑</el-button>
               <el-button type="danger" size="small">删除</el-button>
             </template>
           </el-table-column>
@@ -156,6 +150,21 @@ export default {
       router.push({ path: '/atomiccase/add', query: unref(tableParams) })
     }
 
+    // 点击编辑
+    const editClick = function (scope) {
+      let params = { ...scope.row };
+      params.req_body = JSON.stringify(params.req_body);
+      params.res_body = JSON.stringify(params.res_body);
+      // params.case_status = JSON.stringify(params.case_status);
+      params.case_variable = JSON.stringify(params.case_variable);
+      params.header = JSON.stringify(params.header);
+      params.request_param = JSON.stringify(params.request_param);
+      params.response = JSON.stringify(params.response);
+      params.result_check = JSON.stringify(params.result_check);
+      params.result_variable = JSON.stringify(params.result_variable);
+      router.push({ path: '/atomiccase/edit', query: params })
+    }
+
     // 获取表格数据
     let pageConfig = ref({
       curPage: 1,
@@ -210,6 +219,7 @@ export default {
       canCreate,
       searchConfig,
       btnCreate,
+      editClick,
 
       tableData,
       computedPageConfig,
