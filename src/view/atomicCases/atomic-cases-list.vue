@@ -12,11 +12,12 @@
           <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" />
           <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" />
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
-          <el-table-column prop="address" label="操作" width="210">
+          <el-table-column prop="address" label="操作" width="300">
             <template #default="scope">
-              <el-button type="primary" text size="small">测试</el-button>
+              <el-button type="primary" text size="small" @click="testClick(scope)">测试</el-button>
+              <el-button size="small" @click="copyClick(scope)">复制</el-button>
               <el-button size="small" @click="editClick(scope)">编辑</el-button>
-              <el-button type="danger" size="small">删除</el-button>
+              <el-button type="danger" size="small" @click="delClick(scope)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -29,6 +30,7 @@ import treeTable from '@/component/base/treeTable/treeTable.vue'
 import axios from '@/lin/plugin/axios'
 import { ref, unref, computed } from 'vue'
 import router from '../../router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 export default {
   components: { treeTable },
@@ -165,6 +167,72 @@ export default {
       router.push({ path: '/atomiccase/edit', query: params })
     }
 
+    // 点击测试按钮
+    const testClick = async function (scope) {
+      let params = {"test_case":[]};
+      params.test_case = [scope.row.id];
+      const res = await axios({
+        method: 'post',
+        url: '/iftest/case/execute/test',
+        data: {
+          ...unref(params),
+        },
+      })
+      ElMessage[res.code == 200 ? 'success' : 'error'](res.message)
+      if (res.code == 200){
+        console.log("测试成功，刷新页面");
+        getTableData()
+      }
+        
+    }
+
+    // 点击复制按钮
+    const copyClick = async function (scope) {
+      let params = {"id":0};
+      params.id = scope.row.id;
+      const res = await axios({
+        method: 'post',
+        url: '/iftest/case/build/copy',
+        data: {
+          ...unref(params),
+        },
+      })
+      ElMessage[res.code == 200 ? 'success' : 'error'](res.message)
+      if (res.code == 200){
+        console.log("复制成功，刷新页面");
+        getTableData()
+      }
+        
+    }
+
+    // 点击删除按钮
+    const delClick = async function(scope) {
+      // 定义要删除的用例id
+      let params = {"test_case":[]};
+      params.test_case = [scope.row.id];
+      // 进行确认提示
+      this.loading = true
+      this.$confirm('此操作将永久删除该图书, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }).then(async () => {
+        const res = await axios({
+        method: 'post',
+        url: '/iftest/case/execute/test',
+        data: {
+          ...unref(params),
+        },
+      })
+      ElMessage[res.code == 200 ? 'success' : 'error'](res.message)
+      if (res.code == 200){
+        console.log("测试成功，刷新页面");
+        getTableData()
+      }
+      })
+    }
+
+
     // 获取表格数据
     let pageConfig = ref({
       curPage: 1,
@@ -220,6 +288,10 @@ export default {
       searchConfig,
       btnCreate,
       editClick,
+
+      testClick,
+      delClick,
+      copyClick,
 
       tableData,
       computedPageConfig,
