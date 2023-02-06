@@ -5,7 +5,8 @@
         <el-input v-model="formData.case_title" />
       </el-form-item>
       <el-form-item required label="用例描述" prop="case_desc">
-        <el-input v-model="formData.case_desc" />
+        <!-- <el-input v-model="formData.case_desc" /> -->
+        <el-input v-model="formData.case_desc" :rows="3" type="textarea" />
       </el-form-item>
       <el-form-item label="用例类型" prop="case_type">
         <el-radio-group v-model="formData.case_type">
@@ -33,7 +34,7 @@
       <el-form-item label="用例参数" prop="case_variable">
         <el-input v-model="formData.case_variable" :rows="3" type="textarea" />
       </el-form-item>
-      <el-form-item label="用例变量" prop="result_variable">
+      <el-form-item label="结果变量" prop="result_variable">
         <el-input v-model="formData.result_variable" :rows="3" type="textarea" />
       </el-form-item>
       <el-form-item>
@@ -64,7 +65,8 @@ export default {
       result_check: `{
     "check_type":"response",
     "check_sql":"",
-    "check_field":{}
+    "check_field":{},
+    "check_position":""
 }`,
       case_variable: '',
       result_variable: '',
@@ -93,10 +95,10 @@ export default {
 
     const rules = reactive({
       case_title: [{ required: true, message: '请输入用例标题', trigger: 'change' }],
-      case_desc: [{ required: true, message: '请输入用例描述', trigger: 'change' }],
-      case_status: [{ required: true, message: '请输入用例状态', trigger: 'change' }],
+      // case_desc: [{ required: true, message: '请输入用例描述', trigger: 'change' }],
+      // case_status: [{ required: true, message: '请输入用例状态', trigger: 'change' }],
       header: [
-        { required: true, message: '请输入请求头', trigger: 'change' },
+        // { required: true, message: '请输入请求头', trigger: 'change' },
         {
           validator: jsonValidator,
           trigger: 'blur',

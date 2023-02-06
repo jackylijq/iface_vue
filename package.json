@@ -34,7 +34,8 @@
     "vue-picture-cropper": "^0.1.9",
     "vue-router": "^4.0.10",
     "vuex": "^4.0.2",
-    "vuex-persist": "^2.0.1"
+    "vuex-persist": "^2.0.1",
+    "yarn": "^1.22.19"
   },
   "devDependencies": {
     "@babel/core": "^7.11.4",

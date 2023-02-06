@@ -4,13 +4,14 @@
       @create="btnCreate" :pageConfig="computedPageConfig" @current-change="currentChange" @size-change="sizeChange">
       <template #table>
         <el-table :data="tableData" stripe style="width: 100%">
-          <!-- <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
-                    <el-table-column :show-overflow-tooltip="true" prop="request_url" label="接口路径" /> -->
+          <el-table-column :show-overflow-tooltip="true" prop="id" label="用例编号" width = '100px'/>
+          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
+          <!-- <el-table-column :show-overflow-tooltip="true" prop="request_url" label="接口路径" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" />
-          <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" />
-          <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" />
-          <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" />
-          <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" />
+          <!-- <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" /> -->
+          <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型"  width = '150px'/>
+          <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态"  width = '150px'/>
+          <!-- <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
           <el-table-column prop="address" label="操作" width="300">
             <template #default="scope">
