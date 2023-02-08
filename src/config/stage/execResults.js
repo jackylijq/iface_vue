@@ -1,5 +1,5 @@
 const execResultsRouter = {
-  title: '用例目录',
+  title: '执行结果',
   type: 'view',
   name: Symbol('execResults-list'),
   route: '/execresults/list',
