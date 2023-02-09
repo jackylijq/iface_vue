@@ -129,7 +129,6 @@
       })
       const totalConfig = ref(0)
       const tableParams = ref({})
-      props.planData.un_run_num=1;
       const stateList = ref([{label:"成功",value:props.planData.pass_num?props.planData.pass_num:0},{label:"失败",value:props.planData.failed_num?props.planData.failed_num:0},{label:"未执行",value:props.planData.un_run_num?props.planData.un_run_num:0}])
       onMounted(() => {
         init();
