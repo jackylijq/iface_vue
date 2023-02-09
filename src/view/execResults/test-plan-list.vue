@@ -17,12 +17,13 @@
     <div class="searchInput">
     <el-input
         v-model="searchData"
-        :placeholder="`请输入${select=='1'?'批次号':'计划名称'}`"
+        @input="search"
+        :placeholder="`请输入${select=='batch_id'?'批次号':'计划名称'}`"
         class="input-with-select">
         <template #prepend>
         <el-select v-model="select" style="width: 110px">
-            <el-option label="批次号" value="1" />
-            <el-option label="计划名称" value="2" />
+            <el-option label="批次号" value="batch_id" />
+            <el-option label="计划名称" value="plan_title" />
         </el-select>
         </template>
     </el-input>
@@ -77,6 +78,11 @@
         :show-overflow-tooltip="true">
         </el-table-column>
         <el-table-column
+        prop="exe_env"
+        label="执行环境"
+        :show-overflow-tooltip="true">
+        </el-table-column>
+        <el-table-column
         prop="exe_time"
         label="执行时间">
         </el-table-column>
@@ -100,14 +106,15 @@
   <script>
   import { ref, unref, computed, onMounted } from 'vue'
   import axios from '@/lin/plugin/axios'
+  import { cloneDeep, throttle, debounce } from 'lodash'
   export default {
     props: {
        
     },
     setup(props,context) {
         const tableData= ref([])
-        const searchData= ref({batch_id:''})
-        const select=ref('1')
+        const searchData= ref('')
+        const select=ref('batch_id')
         // 获取表格数据
         const pageConfig = ref({
             curPage: 1,
@@ -150,10 +157,18 @@
         pageConfig.value = {
             curPage,
             pageSize,
-            searchData
         }
         totalConfig.value = total
         }
+        //筛选
+        const search = debounce(function (){
+          tableParams.value={};
+          if(searchData.value&&searchData.value.length>0){
+            tableParams.value[select.value]=select.value=='batch_id'?Number(searchData.value):searchData.value;
+          }
+          
+          init()
+        },300)
         //展开
         const openRow = function (data) {
             context.emit('changePage',data.row);
@@ -162,8 +177,10 @@
             tableData,
             select,
             computedPageConfig,
+            searchData,
             indexMethod,
             openRow,
+            search,
             sizeChange,
             currentChange
         }

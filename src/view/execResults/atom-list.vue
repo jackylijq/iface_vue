@@ -11,18 +11,19 @@
             <el-descriptions-item label="执行状态" :span="2">
                 <span class="stateSpan" v-for="(item,index) in stateList" :key="index">{{ item.label }}：{{ item.value }}</span> 
             </el-descriptions-item>
-            <el-descriptions-item label="失败原因" :span="1">{{ caseData.exe_message }}</el-descriptions-item>
+            <el-descriptions-item label="执行结果" :span="1">{{ caseData.un_run_num&&caseData.un_run_num>0?'未完成':caseData.failed_num&&caseData.failed_num>0?'失败':"成功" }}</el-descriptions-item>
         </el-descriptions>
       </div>
       <div class="searchInput">
         <el-input
-          v-model="input3"
-          :placeholder="`请输入${select=='1'?'批次号':'计划名称'}`"
+        v-model="searchData"
+          @input="search"
+          :placeholder="`请输入用例标题`"
           class="input-with-select">
           <template #prepend>
             <el-select v-model="select" style="width: 110px">
-              <el-option label="批次号" value="1" />
-              <el-option label="计划名称" value="2" />
+              <!-- <el-option label="批次号" value="1" /> -->
+              <el-option label="用例标题" value="iface_name" />
             </el-select>
           </template>
         </el-input>
@@ -44,17 +45,22 @@
             :show-overflow-tooltip="true"
             >
           </el-table-column>
-          <el-table-column
+          <!-- <el-table-column
           :show-overflow-tooltip="true"
           fixed
             prop="name"
             label="用例类型"
             >
-          </el-table-column>
+          </el-table-column> -->
           <el-table-column
             prop="test_result"
             label="执行结果"
             :show-overflow-tooltip="true">
+            <template #default="scope">
+              <div style="display: flex; align-items: center">
+                <span style="margin-left: 10px">{{ scope.row.test_result=="failed"?'失败':'成功' }}</span>
+              </div>
+            </template>
           </el-table-column>
           <el-table-column
             prop="edit_uid"
@@ -67,7 +73,7 @@
           </el-table-column>
           <el-table-column
             prop="message"
-            label="失败原因">
+            label="执行信息">
           </el-table-column>
           <el-table-column
             fixed="right"
@@ -89,18 +95,22 @@
   <script>
   import { ref, unref, computed, onMounted } from 'vue'
   import axios from '@/lin/plugin/axios'
+  import { cloneDeep, throttle, debounce } from 'lodash'
+
   export default {
     props:['caseData'],
     setup(props,context) {
       const tableData= ref([])
-      const select=ref('1')
+      const select=ref('iface_name')
+      const searchData= ref('')
       // 获取表格数据
       const pageConfig = ref({
         curPage: 1,
         pageSize: 10,
+        scene_id:props.caseData.scene_id
       })
       const totalConfig = ref(0)
-      const tableParams = ref({scene_id:props.caseData.scene_id})
+      const tableParams = ref({})
       const stateList = ref([{label:"成功",value:props.caseData.pass_num?props.caseData.pass_num:0},{label:"失败",value:props.caseData.failed_num?props.caseData.failed_num:0},{label:"未执行",value:props.caseData.un_run_num?props.caseData.un_run_num:0}])
       onMounted(() => {
         init();
@@ -113,6 +123,14 @@
         pageSize: unref(pageConfig).pageSize,
         total: unref(totalConfig),
       }))
+      //筛选
+      const search = debounce(function (){
+        tableParams.value={};
+        if(searchData.value&&searchData.value.length>0){
+          tableParams.value[select.value]=select.value=='batch_id'?Number(searchData.value):searchData.value;
+        }
+        init()
+      },300)
       const currentChange = function (v) {
         pageConfig.value.curPage = v
         init()
@@ -137,6 +155,7 @@
         pageConfig.value = {
           curPage,
           pageSize,
+          scene_id:props.caseData.scene_id
         }
         totalConfig.value = total
       }
@@ -149,6 +168,8 @@
         select,
         computedPageConfig,
         stateList,
+        searchData,
+        search,
         // boxData,
         indexMethod,
         openRow,

@@ -1,6 +1,6 @@
 <template>
   <div class="results">
-    <el-page-header @back="onBack" v-if="pagePlan">
+    <el-page-header @back="onBack" v-if="pagePlan" class="headerBox">
         <template #content>
             <div class="flex items-center"> 
                 <el-breadcrumb separator="/">
@@ -88,6 +88,10 @@ export default {
           margin:0px 0px 8px 0px;
       }
   }
+  // .headerBox{
+  //   border-bottom:1px solid var(--el-border-color);
+  //   border-top:1px solid var(--el-border-color);
+  // }
 }
   .stateSpan{
     margin:0px 40px 0px 0px;
@@ -113,32 +117,4 @@ export default {
       }
     }
   }
-// el-row{
-//   display: contents;
-// }
-// .results{
-//   padding:8px 12px;
-// }
-// .formBorder{
-//   width: 100%;
-//   border: 1px solid var(--el-border-color);
-// }
-// .grid-content{
-//   margin:0px 40px 0px 0px;
-// }
-// .searchInput{
-//   width: 350px;
-//   float: right;
-//   margin:8px 0px;
-// }
-// .searchForm{
-//   ::v-deep{
-//     .el-form-item__content{
-//       margin-bottom: 0px;
-//     }
-//     .el-form-item{
-//       margin-bottom: 5px !important;
-//     }
-//   }
-// }
 </style>

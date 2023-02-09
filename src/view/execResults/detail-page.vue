@@ -10,7 +10,7 @@
             <el-descriptions-item label="用例名称" :span="1">{{ atomData.iface_name }}</el-descriptions-item>
             <el-descriptions-item label="接口地址" :span="2">{{ atomData.request_url }}</el-descriptions-item>
             <el-descriptions-item label="请求方式" :span="1">{{ atomData.request_method }}</el-descriptions-item>
-            <el-descriptions-item label="执行结果" :span="1">{{ atomData.test_result }}</el-descriptions-item>
+            <el-descriptions-item label="执行结果" :span="1">{{ atomData.test_result=='pass'?'成功':'失败' }}</el-descriptions-item>
         </el-descriptions>
         <el-descriptions
             :column="1"
@@ -23,7 +23,7 @@
             <el-input
                 v-model="atomData.request_header"
                 readonly=true
-                :autosize="{ minRows: 8, maxRows: 8 }"
+                :autosize="{ minRows: 8, maxRows: 12 }"
                 type="textarea"/>
         </el-descriptions-item>
         </el-descriptions>
@@ -38,7 +38,7 @@
             <el-input
                 v-model="atomData.request_param"
                 readonly=true
-                :autosize="{ minRows: 8, maxRows: 8 }"
+                :autosize="{ minRows: 8, maxRows: 12 }"
                 type="textarea"/>
         </el-descriptions-item>
         </el-descriptions>
@@ -53,7 +53,7 @@
             <el-input
                 v-model="atomData.response"
                 readonly=true
-                :autosize="{ minRows: 8, maxRows: 8 }"
+                :autosize="{ minRows: 8, maxRows: 12 }"
                 type="textarea"/>
         </el-descriptions-item>
         </el-descriptions>
@@ -68,7 +68,7 @@
             <el-input
                 v-model="atomData.result_check_detail"
                 readonly=true
-                :autosize="{ minRows: 8, maxRows: 8 }"
+                :autosize="{ minRows: 8, maxRows: 12 }"
                 type="textarea"/>
         </el-descriptions-item>
         </el-descriptions>

@@ -9,8 +9,13 @@
         >
             <el-descriptions-item label="计划名称" :span="1">{{ planData.plan_title }}</el-descriptions-item>
             <el-descriptions-item label="批次ID" :span="1">{{ planData.batch_id }}</el-descriptions-item>
-            <el-descriptions-item label="执行进度" :span="2">{{  }}</el-descriptions-item>
             <el-descriptions-item label="计划描述" :span="2">{{ planData.exe_message }}</el-descriptions-item>
+            <el-descriptions-item label="执行进度" :span="2">
+              <!-- <span> -->
+                <div style="padding-right:40px">{{ planData.pass_num+planData.failed_num}} / {{planData.pass_num+planData.failed_num+planData.un_run_num }}</div>
+                <el-progress :percentage="Math.round((planData.pass_num+planData.failed_num)*100/(planData.pass_num+planData.failed_num+planData.un_run_num))" style="width:400px;" />
+              <!-- </span> -->
+            </el-descriptions-item>
             <el-descriptions-item label="执行状态" :span="2">
                 <span class="stateSpan" v-for="(item,index) in stateList" :key="index">{{ item.label }}：{{ item.value }}</span> 
             </el-descriptions-item>
@@ -18,13 +23,14 @@
       </div>
       <div class="searchInput">
         <el-input
-          v-model="input3"
-          :placeholder="`请输入${select=='1'?'批次号':'计划名称'}`"
+          v-model="searchData"
+          @input="search"
+          :placeholder="`请输入${select=='case_title'?'用例名称':'批次号'}`"
           class="input-with-select">
           <template #prepend>
             <el-select v-model="select" style="width: 110px">
-              <el-option label="批次号" value="1" />
-              <el-option label="计划名称" value="2" />
+              <!-- <el-option label="批次号" value="1" /> -->
+              <el-option label="用例名称" value="case_title" />
             </el-select>
           </template>
         </el-input>
@@ -46,17 +52,22 @@
             :show-overflow-tooltip="true"
             >
           </el-table-column>
-          <el-table-column
+          <!-- <el-table-column
           :show-overflow-tooltip="true"
           fixed
             prop="name"
             label="用例类型"
             >
-          </el-table-column>
+          </el-table-column> -->
           <el-table-column
             prop="exe_result"
             label="执行结果"
             :show-overflow-tooltip="true">
+            <template #default="scope">
+              <div style="display: flex; align-items: center">
+                <span style="margin-left: 10px">{{ scope.row.exe_result=="failed"?'失败':'成功' }}</span>
+              </div>
+            </template>
           </el-table-column>
           <el-table-column
             prop="all_num"
@@ -102,19 +113,23 @@
   <script>
   import { ref, unref, computed, onMounted } from 'vue'
   import axios from '@/lin/plugin/axios'
+  import { cloneDeep, throttle, debounce } from 'lodash'
   export default {
     props:['planData'],
     setup(props,context) {
       const tableData= ref([])
       // const boxData=props.planData
-      const select=ref('1')
+      const searchData= ref('')
+      const select=ref('case_title')
       // 获取表格数据
       const pageConfig = ref({
         curPage: 1,
         pageSize: 10,
+        batch_id:props.planData.batch_id
       })
       const totalConfig = ref(0)
-      const tableParams = ref({batch_id:props.planData.batch_id})
+      const tableParams = ref({})
+      props.planData.un_run_num=1;
       const stateList = ref([{label:"成功",value:props.planData.pass_num?props.planData.pass_num:0},{label:"失败",value:props.planData.failed_num?props.planData.failed_num:0},{label:"未执行",value:props.planData.un_run_num?props.planData.un_run_num:0}])
       onMounted(() => {
         init();
@@ -127,6 +142,14 @@
         pageSize: unref(pageConfig).pageSize,
         total: unref(totalConfig),
       }))
+      //筛选
+      const search = debounce(function (){
+        tableParams.value={};
+        if(searchData.value&&searchData.value.length>0){
+          tableParams.value[select.value]=select.value=='batch_id'?Number(searchData.value):searchData.value;
+        }
+        init()
+      },300)
       const currentChange = function (v) {
         pageConfig.value.curPage = v
         init()
@@ -151,6 +174,7 @@
         pageConfig.value = {
           curPage,
           pageSize,
+          batch_id:props.planData.batch_id
         }
         totalConfig.value = total
       }
@@ -164,6 +188,8 @@
         select,
         computedPageConfig,
         stateList,
+        searchData,
+        search,
         // boxData,
         indexMethod,
         openRow,
@@ -195,6 +221,9 @@
       }
       .el-descriptions__body{
         padding:8px;
+      }
+      .el-descriptions__content{
+        display: inline-flex;
       }
     }
   }
