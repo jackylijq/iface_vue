@@ -100,7 +100,7 @@
         pageSize: 10,
       })
       const totalConfig = ref(0)
-      const tableParams = ref({case_id:props.caseData.id})
+      const tableParams = ref({scene_id:props.caseData.scene_id})
       const stateList = ref([{label:"成功",value:props.caseData.pass_num?props.caseData.pass_num:0},{label:"失败",value:props.caseData.failed_num?props.caseData.failed_num:0},{label:"未执行",value:props.caseData.un_run_num?props.caseData.un_run_num:0}])
       onMounted(() => {
         init();
@@ -127,7 +127,7 @@
           method: 'post',
           url: '/iftest/case/atom/result/list',
           data: {
-            // ...unref(tableParams),
+            ...unref(tableParams),
             ...unref(pageConfig),
           },
         })
