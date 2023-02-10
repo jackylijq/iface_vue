@@ -1,0 +1,120 @@
+<template>
+  <el-tabs v-model="activeName" class="demo-tabs">
+    <el-tab-pane label="用例参数" name="first">
+      <el-form label-width="120px">
+        <el-form-item label="接口地址">
+          <el-input v-model="formData.request_url" disabled>
+            <template #prepend>
+              <el-select disabled v-model="formData.request_method" class="select" style="width: 115px">
+                <el-option label="GET" value="GET" />
+                <el-option label="POST" value="POST" />
+                <el-option label="PUT" value="PUT" />
+                <el-option label="DELETE" value="DELETE" />
+              </el-select>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="接口标题">
+          <el-input disabled v-model="formData.case_title" />
+        </el-form-item>
+        <el-form-item label="">
+          <el-input
+            type="textarea"
+            @blur="updateInfo('case_variable')"
+            :rows="7"
+            v-model="formData.case_variable"
+          />
+        </el-form-item>
+      </el-form>
+    </el-tab-pane>
+    <el-tab-pane label="结果变量" name="second">
+      <el-form label-width="120px">
+        <el-form-item label="接口地址">
+          <el-input v-model="formData.request_url" disabled>
+            <template #prepend>
+              <el-select disabled v-model="formData.request_method" class="select" style="width: 115px">
+                <el-option label="GET" value="GET" />
+                <el-option label="POST" value="POST" />
+                <el-option label="PUT" value="PUT" />
+                <el-option label="DELETE" value="DELETE" />
+              </el-select>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="接口标题">
+          <el-input disabled v-model="formData.case_title" />
+        </el-form-item>
+        <el-form-item label="">
+          <el-input
+            type="textarea"
+            @blur="updateInfo('result_variable')"
+            :rows="7"
+            v-model="formData.result_variable"
+          />
+        </el-form-item>
+      </el-form>
+    </el-tab-pane>
+  </el-tabs>
+</template>
+<script setup>
+import { reactive, ref, defineProps, watchEffect, nextTick, defineEmits } from 'vue'
+import { ElMessage } from "element-plus"
+let props = defineProps({
+  caseInfo: {
+    type: Object,
+    default: {},
+  },
+})
+watchEffect(() => {
+  let { id, request_url, request_method, case_title, case_variable, result_variable } = props.caseInfo
+  nextTick(() => {
+    formData.request_method = request_method || ''
+    formData.case_title = case_title || ''
+    formData.request_url = request_url || ''
+    formData.case_variable = JSON.stringify(case_variable, null, 2)
+    formData.result_variable = JSON.stringify(result_variable, null, 2)
+
+    if (id === undefined) {
+      activeName.value = 'first'
+    }
+  })
+})
+
+let activeName = ref('first')
+
+let formData = reactive({
+  request_url: '',
+  request_method: '',
+  case_title: '',
+  case_variable: '',
+  result_variable: '',
+})
+
+let emits = defineEmits(['update:caseInfo'])
+
+// 失焦时数据自动更新
+let updateInfo = function (key) {
+  let dataString = formData[key];
+  let strMap = {
+    result_variable: "结果变量",
+    case_variable:"用例参数"
+  }
+  try {
+    
+  } catch (error) {
+    ElMessage.error(`${strMap[key]}不能被格式化`)
+  }
+}
+</script>
+<style lang="scss" scoped>
+::v-deep .el-input-group__prepend {
+  background-color: transparent;
+  color: #909399;
+  border: none;
+}
+
+::v-deep .el-input .el-input--suffix {
+  color: inherit;
+  background-color: inherit;
+}
+</style>

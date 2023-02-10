@@ -49,7 +49,7 @@ export default {
         if (level === 0) {
           const res = await axios({
             method: 'post',
-            url: '/iftest/interface/project/list',
+            url: '/iftest/iface/project/list',
           })
           const nodeData = res.data.datasList.map(v => ({
             id: `${v.id}`,
@@ -63,7 +63,7 @@ export default {
           const { id: project_id } = node.data.otherData
           const res = await axios({
             method: 'post',
-            url: '/iftest/interface/group/list',
+            url: '/iftest/iface/group/list',
             data: {
               project_id,
             },
@@ -79,7 +79,7 @@ export default {
           const { id: group_id, project_id } = node.data.otherData
           const res = await axios({
             method: 'post',
-            url: '/iftest/interface/iface/list',
+            url: '/iftest/iface/iface_list',
             data: {
               group_id,
               project_id,

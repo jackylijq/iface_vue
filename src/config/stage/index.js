@@ -5,6 +5,7 @@ import sceneCasesConfig from './sceneCases'
 import casesFolderConfig from './casesFolder'
 import execResultsConfig from './execResults'
 import settingsConfig from './settings'
+import integrationCasesConfig from './integrationCases'
 
 // eslint-disable-next-line import/no-mutable-exports
 let homeRouter = [
@@ -28,10 +29,12 @@ let homeRouter = [
   },
   interfaceConfig,
   ...atomicCasesConfig,
+  ...integrationCasesConfig,
   sceneCasesConfig,
   casesFolderConfig,
   execResultsConfig,
   settingsConfig,
+  ,
 ]
 
 // 处理顺序
