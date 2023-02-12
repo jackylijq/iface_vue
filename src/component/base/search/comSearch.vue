@@ -4,7 +4,10 @@
       {{ item.label }}
     </el-button>
 
-    <Search @query="doQuery" />
+    <Search @query="doQuery">
+      <template v-if="$slots.prepend" #prepend>
+        <slot name="prepend"></slot> </template
+    ></Search>
   </div>
 </template>
 <script>

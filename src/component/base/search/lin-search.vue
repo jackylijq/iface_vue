@@ -1,6 +1,10 @@
 <template>
   <div class="lin-search">
     <el-input :placeholder="placeholder" clearable v-model="keyword" class="input-with-select">
+      <template v-if="$slots.prepend"  #prepend>
+        <slot name="prepend"></slot>
+      </template>
+      
       <template #suffix>
         <i class="el-input__icon el-icon-search" @click="search"></i>
       </template>
@@ -55,5 +59,15 @@ export default {
 }
 .lin-search :v-deep(.el-input__suffix) {
   cursor: pointer;
+}
+::v-deep .el-input-group__prepend {
+  background-color: transparent;
+  color: #909399;
+  border: none;
+}
+
+::v-deep .el-input .el-input--suffix {
+  color: inherit;
+  background-color: inherit;
 }
 </style>

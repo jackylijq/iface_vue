@@ -5,7 +5,11 @@
     </div>
 
     <div class="table-box">
-      <comSearch v-bind="{ ...searchConfig, ...$attrs }" />
+      <comSearch v-bind="{ ...searchConfig, ...$attrs }">
+        <template v-if="$slots.prepend" #prepend>
+          <slot name="prepend"></slot>
+        </template>
+      </comSearch>
 
       <slot name="table"></slot>
 
