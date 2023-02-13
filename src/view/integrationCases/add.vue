@@ -3,8 +3,8 @@
     <header class="integration-cases-add-header">
       <span class="float-l"><!-- <i class="iconfont icon-fanhui"></i> 返回--></span>
       <span @click="handleSave"> <i class="iconfont icon-moshubang"></i> 保存</span>
-      <span> <!--<i class="iconfont icon-shanchu"></i> 删除--></span>
-      <span class="float-r" @click="baseInfoShow = true">基础信息</span>
+      <span @click="handleClear"> <i class="iconfont icon-shanchu"></i> 清空</span>
+      <span class="float-r" @click="baseInfoShow = true">{{ data.case_title || '基础信息' }}</span>
     </header>
 
     <main class="integration-cases-add-main">
@@ -14,6 +14,7 @@
     <!-- 设置基础信息 -->
     <el-drawer
       v-model="baseInfoShow"
+      modal-class="base-info"
       title="设置基础信息"
       :before-close="handleBeforeClose"
       :with-header="true"
@@ -40,7 +41,7 @@ let timestamp = new Date().getTime()
 let data = reactive({
   project_id: 1,
   edit_uid: useStore().getters.user.id,
-  case_title: `标题-${timestamp}`,
+  case_title: '', //`标题-${timestamp}`,
   case_desc: '',
   case_type: '正常',
   case_group_id: '',
@@ -57,6 +58,9 @@ onMounted(() => {
   if (id) {
     locationKey = `caseData-${id}`
     data.id = id
+  } else {
+    // 创建时，直接显示基本信息
+    baseInfoShow.value = true
   }
   let { case_title, case_desc, case_type, case_group_id, remark, items } =
     JSON.parse(window.localStorage.getItem(locationKey)) || {}
@@ -82,12 +86,15 @@ let updateItem = function ({ index, row }) {
 // 校验基本信息
 let refBaseInfo = ref('refBaseInfo')
 let handleBeforeClose = async function (done) {
-  if (process.env.NODE_ENV !== 'development') await refBaseInfo.value.refForm.validate()
-  // window.localStorage.setItem(locationKey, JSON.stringify(data))
+  await refBaseInfo.value.refForm.validate()
+  window.localStorage.setItem(locationKey, JSON.stringify(data))
   done()
 }
 
 let handleSave = async function () {
+  // 校验数据存在
+  await refBaseInfo.value.refForm.validate()
+
   let dataUnref = unref(data)
   let atom_case_list = dataUnref.items.map(v => v.id)
   let atom_case_detail = {}
@@ -123,6 +130,10 @@ let handleSave = async function () {
     emitter.emit('custom-close')
     router.replace('/integrationcases/list')
   }
+}
+
+let handleClear = function () {
+  data.items = []
 }
 </script>
 <style lang="scss" scoped>
@@ -176,5 +187,12 @@ let handleSave = async function () {
     overflow-y: hidden;
     overflow-x: auto;
   }
+}
+</style>
+<style lang="scss">
+.base-info {
+  position: absolute;
+  top: 50px;
+  height: calc(100% - 50px);
 }
 </style>
