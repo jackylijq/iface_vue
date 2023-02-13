@@ -19,7 +19,7 @@
 
           <el-table-column label="操作" width="300">
             <template #default="scope">
-              <el-button type="primary" text size="small">测试</el-button>
+              <el-button type="primary" text size="small" @click="handleTest(scope)">测试</el-button>
               <el-button size="small" @click="handleEdit(scope)">编辑</el-button>
               <el-button type="danger" size="small" @click="handleDelete(scope)">删除</el-button>
             </template>
@@ -150,7 +150,8 @@ let handleCreate = function () {
  * @param {*} param0
  */
 let handleEdit = function ({ row }) {
-  let { atom_case_list, atom_case_detail, id, case_desc, case_group_id,remark, case_title, case_type, project_id } = row
+  let { atom_case_list, atom_case_detail, id, case_desc, case_group_id, remark, case_title, case_type, project_id } =
+    row
   let caseData = {
     id,
     project_id,
@@ -175,6 +176,10 @@ let handleEdit = function ({ row }) {
   // console.log(row, caseData)
   // return
   router.push({ path: '/integrationcases/edit', query: { id: row.id } })
+}
+
+let handleTest = function ({ row }) {
+  router.push({ path: '/integrationcases/test', query: { id: row.id } })
 }
 
 let tableParams = ref({})

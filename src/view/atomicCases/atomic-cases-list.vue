@@ -96,6 +96,13 @@ export default {
               otherData: v,
             })),
           )
+          if (currentNodeKey.value) {
+            let currentNodeKeyCopy = unref(currentNodeKey)
+            currentNodeKey.value = ''
+            setTimeout(() => {
+              currentNodeKey.value = currentNodeKeyCopy
+            }, 0)
+          }
         } else if (level === 2) {
           const { id: group_id, project_id } = node.data.otherData
           const res = await axios({
@@ -104,6 +111,8 @@ export default {
             data: {
               group_id,
               project_id,
+              curPage: 1,
+              pageSize: 100,
             },
           })
           resolve(
@@ -114,6 +123,13 @@ export default {
               otherData: v,
             })),
           )
+          if (currentNodeKey.value) {
+            let currentNodeKeyCopy = unref(currentNodeKey)
+            currentNodeKey.value = ''
+            setTimeout(() => {
+              currentNodeKey.value = currentNodeKeyCopy
+            }, 0)
+          }
         } else {
           resolve([])
         }
@@ -192,11 +208,12 @@ export default {
     }
 
     let handleRowClick = function (row) {
-      defaultExpandedKeys.value = [row.project_id]
-      nextTick(() => {
-        // currentNodeKey.value = row.project_id
-        defaultExpandedKeys.value = [row.group_id]
-      })
+      defaultExpandedKeys.value = [
+        `${row.project_id}`,
+        `${row.project_id}-${row.group_id}`,
+        `${row.project_id}-${row.group_id}-${row.iface_id}`,
+      ]
+      currentNodeKey.value = `${row.project_id}-${row.group_id}`
     }
 
     // 点击测试按钮
