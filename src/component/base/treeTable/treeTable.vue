@@ -53,7 +53,7 @@ export default {
 
     :deep .base-tree{
       .el-tree-node,.el-tree-node__content{
-        height: 40px;
+        min-height: 40px;
         line-height: 40px;
       }
     }
