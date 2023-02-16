@@ -25,7 +25,7 @@
   </div>
 </template>
 <script setup>
-import { onMounted, reactive, ref, unref, watchEffect } from 'vue'
+import { onMounted, reactive, ref, unref } from 'vue'
 import { useStore } from 'vuex'
 import router from '../../router'
 import emitter from 'lin/util/emitter'

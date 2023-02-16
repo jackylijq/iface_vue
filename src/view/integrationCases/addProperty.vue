@@ -17,7 +17,7 @@
         <el-form-item label="接口标题">
           <el-input disabled v-model="formData.case_title" />
         </el-form-item>
-        <el-form-item label="">
+        <el-form-item label="用例参数">
           <el-input
             type="textarea"
             @blur="updateInfo('case_variable')"
@@ -44,7 +44,7 @@
         <el-form-item label="接口标题">
           <el-input disabled v-model="formData.case_title" />
         </el-form-item>
-        <el-form-item label="">
+        <el-form-item label="结果变量">
           <el-input
             type="textarea"
             @blur="updateInfo('result_variable')"
@@ -106,15 +106,3 @@ let updateInfo = function (key) {
   }
 }
 </script>
-<style lang="scss" scoped>
-::v-deep .el-input-group__prepend {
-  background-color: transparent;
-  color: #909399;
-  border: none;
-}
-
-::v-deep .el-input .el-input--suffix {
-  color: inherit;
-  background-color: inherit;
-}
-</style>

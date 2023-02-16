@@ -60,14 +60,4 @@ export default {
 .lin-search :v-deep(.el-input__suffix) {
   cursor: pointer;
 }
-::v-deep .el-input-group__prepend {
-  background-color: transparent;
-  color: #909399;
-  border: none;
-}
-
-::v-deep .el-input .el-input--suffix {
-  color: inherit;
-  background-color: inherit;
-}
 </style>

@@ -1,6 +1,6 @@
 const atomicCasesRouter = [
   {
-    title: '原子用例维护',
+    title: '原子用例',
     type: 'view',
     name: Symbol('atomiccase-list'),
     route: '/atomiccase/list',

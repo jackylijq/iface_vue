@@ -5,9 +5,12 @@
       :searchConfig="searchConfig"
       :pageConfig="pageConfig"
       @create="handleCreate"
+      @size-change="sizeChange"
+      @current-change="currentChange"
     >
       <template #table>
         <el-table :data="tableData" stripe style="width: 100%">
+          <el-table-column :show-overflow-tooltip="false" prop="id" label="用例id" min-width="100px" />
           <el-table-column :show-overflow-tooltip="true" prop="case_title" label="集成用例名称" min-width="150px" />
           <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="集成用例描述" min-width="250px" />
           <el-table-column :show-overflow-tooltip="true" prop="atom_case_num" label="原子用例数量" min-width="150px" />
@@ -17,7 +20,7 @@
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" min-width="150px" />
           <el-table-column :show-overflow-tooltip="true" prop="exe_time" label="执行时间" min-width="150px" />
 
-          <el-table-column label="操作" width="300">
+          <el-table-column label="操作" width="300px">
             <template #default="scope">
               <el-button type="primary" text size="small" @click="handleTest(scope)">测试</el-button>
               <el-button size="small" @click="handleEdit(scope)">编辑</el-button>
@@ -107,8 +110,7 @@ let treeConfig = unref({
     } else if (level === 2) {
       const { id: group_id, project_id } = data.otherData
       tableParams.value = {
-        // group_id,
-        // project_id,
+        case_group_id:group_id
       }
     }
     getTableData()
@@ -178,8 +180,20 @@ let handleEdit = function ({ row }) {
   router.push({ path: '/integrationcases/edit', query: { id: row.id } })
 }
 
-let handleTest = function ({ row }) {
-  router.push({ path: '/integrationcases/test', query: { id: row.id } })
+let handleTest = async function ({ row }) {
+  let res = await axios({
+    method: 'POST',
+    url: '/iftest/case/execute/test',
+    data: { plan_list: [], scene_list: [row.id], test_case: [], branch: 'test' },
+  })
+  if (res.code === 200) {
+    router.push({ path: '/integrationcases/test', query: { scene_id: row.id, batch_id: res.batch_id } })
+  } else {
+    ElMessage({
+      type: "error",
+      message:"测试失败，请重试"
+    })
+  }
 }
 
 let tableParams = ref({})
@@ -251,5 +265,6 @@ const sizeChange = function (v) {
 </script>
 <style lang="scss" scoped>
 .integration-cases-list {
+  height: inherit;
 }
 </style>

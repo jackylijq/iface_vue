@@ -1,11 +1,12 @@
 import Utils from '@/lin/util/util'
-import interfaceConfig from './interface'
+// import interfaceConfig from './interface'
 import atomicCasesConfig from './atomicCases' // 引入原子用例维护路由
-import sceneCasesConfig from './sceneCases'
-import casesFolderConfig from './casesFolder'
+// import sceneCasesConfig from './sceneCases'
+// import casesFolderConfig from './casesFolder'
 import execResultsConfig from './execResults'
 import settingsConfig from './settings'
 import integrationCasesConfig from './integrationCases'
+import testPlansConfig from './testPlans'
 
 // eslint-disable-next-line import/no-mutable-exports
 let homeRouter = [
@@ -27,11 +28,12 @@ let homeRouter = [
     inNav: false,
     icon: 'iconfont icon-rizhiguanli',
   },
-  interfaceConfig,
+  // interfaceConfig,
   ...atomicCasesConfig,
   ...integrationCasesConfig,
-  sceneCasesConfig,
-  casesFolderConfig,
+  ...testPlansConfig,
+  // sceneCasesConfig,
+  // casesFolderConfig,
   execResultsConfig,
   settingsConfig,
   ,

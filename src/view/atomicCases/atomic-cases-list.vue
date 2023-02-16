@@ -183,6 +183,8 @@ export default {
       ],
       query(v) {
         tableParams.value[unref(searchType)] = v || undefined
+
+        // TODO: 根据搜索类型调整表格
         getTableData()
       },
     }))

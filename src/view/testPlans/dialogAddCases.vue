@@ -1,6 +1,7 @@
 <template>
-  <el-dialog :modelValue="value" top="8vh" title="选择用例" width="900px" @close="emits('input', false)">
+  <el-dialog v-model="value" top="8vh" title="选择用例" width="900px" @close="emits('input', false)">
     <div class="search">
+      <span>项目名称:</span>
       <el-select-v2
         v-model="searchInfo.project_id"
         class="m-2"
@@ -17,6 +18,7 @@
         </template>
       </el-select-v2>
 
+      <span style="margin-left: 8px">分组名称:</span>
       <el-select-v2
         v-model="searchInfo.group_id"
         class="m-2"
@@ -33,21 +35,7 @@
         </template>
       </el-select-v2>
 
-      <el-select-v2
-        v-model="searchInfo.iface_id"
-        clearable
-        class="m-2"
-        filterable
-        :options="ifaceList"
-        style="width: 150px"
-      >
-        <template #default="{ item }">
-          <el-tooltip effect="dark" :content="item.label" placement="top-start">
-            <span>{{ item.label }}</span>
-          </el-tooltip>
-        </template>
-      </el-select-v2>
-
+      <span style="margin-left: 8px">用例名称:</span>
       <el-input
         v-model="searchInfo.case_title"
         class="w-50 m-2"
@@ -59,15 +47,16 @@
       <el-button class="m-2" type="primary" @click="getTableData" :icon="Search" circle />
     </div>
 
-    <el-table :data="tableData" stripe style="width: 100%">
-      <el-table-column width="34">
-        <template #default="{ row }">
-          <el-radio v-model="selectValue" :label="row.id"></el-radio>
-        </template>
-      </el-table-column>
+    <el-table
+      ref="refTable"
+      :data="tableData"
+      stripe
+      style="width: 100%"
+      @select-all="handleSelection"
+      @select="handleSelection"
+    >
+      <el-table-column type="selection" width="55" />
       <el-table-column type="index" label="序号" width="70" />
-      <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" width="100px" />
-      <el-table-column :show-overflow-tooltip="true" prop="request_url" label="接口路径" />
       <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" />
       <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" />
       <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="创建人员" />
@@ -90,20 +79,21 @@
   </el-dialog>
 </template>
 <script setup>
-import { ref, defineProps, defineEmits, reactive, onMounted, unref, watch } from 'vue'
+import { ref, defineProps, defineEmits, reactive, unref, nextTick, watch } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import axios from '@/lin/plugin/axios'
+import { cloneDeep } from 'lodash'
 let props = defineProps({
   value: {
     type: Boolean,
-    require: false,
+    require: true,
   },
+  selectedData: {},
 })
 
 let searchInfo = reactive({
   project_id: '',
   group_id: '',
-  iface_id: '',
   case_title: '',
 })
 
@@ -111,29 +101,30 @@ let productList = ref([])
 let getProductList = async function () {
   let res = await axios({
     method: 'POST',
-    url: '/iftest/iface/project/list',
+    url: '/iftest/condition/group/list',
+    data: { project_line_id: 1, parents_id: 0, group_type: 'scene' },
   })
   productList.value = res.data.datasList.map(v => ({
-    label: v.pro_name,
+    label: v.group_name,
     value: v.id,
   }))
 }
 
 let changeProduct = function (val) {
-  searchInfo.group_id = ''
-  searchInfo.iface_id = ''
-
   getGroupList(val)
+  getTableData()
 }
 
 // 分组
 let groupList = ref([])
-let getGroupList = async function (project_id) {
+let getGroupList = async function (parents_id) {
   let res = await axios({
     method: 'POST',
-    url: '/iftest/iface/group/list',
+    url: '/iftest/condition/group/list',
     data: {
-      project_id,
+      parents_id,
+      project_line_id: 1,
+      group_type: 'scene',
     },
   })
 
@@ -142,30 +133,12 @@ let getGroupList = async function (project_id) {
     value: v.id,
   }))
 }
-let changeGroup = function () {
-  searchInfo.iface_id = ''
-  getIfaceList()
+
+let changeGroup = () => {
+  getTableData()
 }
 
-let ifaceList = ref([])
-let getIfaceList = async function () {
-  let res = await axios({
-    method: 'POST',
-    url: '/iftest/iface/iface_list',
-    data: {
-      curPage: 1,
-      pageSize: 100,
-      group_id: searchInfo.group_id,
-      project_id: searchInfo.project_id,
-    },
-  })
-  ifaceList.value = res.data.datasList.map(v => ({
-    label: v.iface_name,
-    value: v.id,
-  }))
-}
-
-let selectValue = ref('')
+let refTable = ref()
 let tableData = ref([])
 let pageConfig = reactive({
   curPage: 1,
@@ -174,26 +147,32 @@ let pageConfig = reactive({
 })
 let getTableData = async function () {
   let { curPage, pageSize } = unref(pageConfig)
-  let { case_title, project_id, group_id, iface_id } = unref(searchInfo)
+  let { case_title, project_id, group_id } = unref(searchInfo)
   project_id = project_id || undefined
   group_id = group_id || undefined
-  iface_id = iface_id || undefined
   let data = {
     curPage,
     pageSize,
     case_title,
-    project_id,
-    group_id,
-    iface_id,
+    case_group_id: group_id || project_id,
   }
   let res = await axios({
     method: 'POST',
-    url: '/iftest/case/standStom/list',
+    url: '/iftest/case/scene/list',
     data,
   })
 
   tableData.value = res.data.datasList
   pageConfig.total = res.data.total
+
+  nextTick(() => {
+    tableData.value.forEach(e => {
+      refTable.value.toggleRowSelection(
+        e,
+        props.selectedData.some(v => v.id === e.id),
+      )
+    })
+  })
 }
 
 const currentChange = function (v) {
@@ -206,10 +185,36 @@ const sizeChange = function (v) {
   getTableData()
 }
 
+let selections = ref([])
+let handleSelection = (select, row) => {
+  // 需要判断出是删除还是增加
+  if (!row) {
+    // 全选
+    if (select.length === 0) {
+      // 不选当前页
+      selections.value = unref(selections).filter(v => unref(tableData).some(e => e.id !== v.id))
+    } else {
+      selections.value.push(...unref(tableData))
+    }
+  } else {
+    if (select.some(v => v.id === row.id)) {
+      // 选中row
+      selections.value.push(unref(row))
+    } else {
+      // 删除row
+      selections.value.splice(
+        unref(selections).findIndex(v => v.id === row.id),
+        1,
+      )
+    }
+  }
+}
+
 watch(
   () => props.value,
   () => {
-    if (props.value) {
+    if (props.value === true) {
+      selections.value = cloneDeep(props.selectedData)
       getProductList()
       getTableData()
     }
@@ -219,8 +224,7 @@ watch(
 let emits = defineEmits(['input', 'save'])
 
 let submit = function () {
-  let row = unref(tableData).find(v => v.id === unref(selectValue))
-  emits('save', { id: unref(selectValue), row })
+  emits('save', { selections: unref(selections) })
   emits('input', false)
 }
 </script>

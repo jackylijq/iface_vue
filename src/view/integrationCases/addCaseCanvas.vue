@@ -5,7 +5,33 @@
         <!--- v-for="(item, index) in group" :key="index" --->
         <figure @click="handleProperty(group)" :class="{ 'active-item': activeCase.id === group.id }">
           <i class="el-icon-close" @click.stop="handleRemove(groupIndex)"></i>
-          <img src="" alt="" srcset="" />
+          <svg
+            t="1676442394398"
+            class="icon"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="2594"
+            width="60"
+            height="60"
+          >
+            <path
+              d="M512 980A468.11 468.11 0 0 1 329.82 80.79a468.12 468.12 0 0 1 364.36 862.42A465.15 465.15 0 0 1 512 980z m0-876a408.11 408.11 0 0 0-158.8 784 408.11 408.11 0 0 0 317.6-751.9A405.36 405.36 0 0 0 512 104z"
+              p-id="2595"
+              fill="#1296db"
+            ></path>
+            <path
+              d="M859.46 581.45a30 30 0 0 1-29.72-26.17A320.53 320.53 0 0 0 401.56 296a30 30 0 0 1-20.71-56.31 380.42 380.42 0 0 1 508.4 307.94 30 30 0 0 1-29.79 33.84zM163.73 590.83a29 29 0 0 1-3.07-0.16 30 30 0 0 1-26.81-32.88 378.76 378.76 0 0 1 76.35-192.32A30 30 0 0 1 257.82 402a318.85 318.85 0 0 0-64.28 161.89 30 30 0 0 1-29.81 26.94z"
+              p-id="2596"
+              fill="#1296db"
+            ></path>
+            <path d="M512 512m-60 0a60 60 0 1 0 120 0 60 60 0 1 0-120 0Z" p-id="2597" fill="#1296db"></path>
+            <path
+              d="M572 602a29.88 29.88 0 0 1-21.21-8.79l-292-292a30 30 0 0 1 42.42-42.42l292 292A30 30 0 0 1 572 602z"
+              p-id="2598"
+              fill="#1296db"
+            ></path>
+          </svg>
           <figcaption :title="group.case_title">{{ group.case_title || '-' }}</figcaption>
         </figure>
         <span class="line-before" :class="{ end: groupIndex === items.length - 1 }"></span>
@@ -18,7 +44,7 @@
     </div>
   </div>
   <add-cases
-    :model-value="casesListShow"
+    :value="casesListShow"
     @input="
       val => {
         casesListShow = val
@@ -29,7 +55,7 @@
   ></add-cases>
 
   <!-- 设置用例属性 -->
-  <el-drawer modal-class="case-property" v-model="propertyShow" :with-header="false" size="50%" direction="btt">
+  <el-drawer modal-class="case-property" v-model="propertyShow" :with-header="false" size="70%" direction="btt">
     <add-property :caseInfo="activeCase"></add-property>
   </el-drawer>
 </template>
@@ -91,7 +117,7 @@ let handleProperty = function (info) {
   width: 1000%;
   height: 1000%;
 
-  padding: 100px;
+  padding: 60px;
 
   i {
     &.icon-add {
@@ -123,30 +149,24 @@ let handleProperty = function (info) {
         width: 72px;
         flex-direction: column;
         align-items: center;
-
-        img {
-          display: inline-block;
-          width: 60px;
-          height: 60px;
-          border: 1px solid transparent;
-        }
+        cursor: pointer;
 
         &:hover {
-          img {
-            cursor: pointer;
-            border-color: #3c63cc;
-          }
           .el-icon-close {
             display: inline-block;
             background-color: #3c63cc;
             color: #fff;
           }
+          svg {
+            border-radius: 50%;
+            box-shadow: 1px 5px 10px #838999;
+          }
         }
 
         &.active-item {
-          img {
-            border-color: #3c63cc;
-            box-shadow: 1px 1px 10px #3c63cc;
+          svg {
+            border-radius: 50%;
+            box-shadow: 1px 5px 10px #838999;
           }
         }
 

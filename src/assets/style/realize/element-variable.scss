@@ -266,12 +266,12 @@ $--link-disabled-font-color: $--color-text-placeholder !default;
 // input
 .el-input-group__append,
 .el-input-group__prepend {
-  background: $theme;
-  border: 1px solid $theme;
-  color: #fff;
+  // background: $theme;
+  // border: 1px solid $theme;
+  // color: #fff;
 }
 .el-input .el-input--suffix {
-  background: $theme;
+  background: #fff;
   color: #fff;
   input::placeholder{
     color: #fff;

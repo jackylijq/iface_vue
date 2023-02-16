@@ -1,7 +1,7 @@
 <template>
   <el-form ref="refForm" :rules="rules" :model="form" label-width="100px">
     <el-form-item prop="case_title" label="用例标题">
-      <el-input v-model="form.case_title" autocomplete="off" />
+      <el-input v-model="form.case_title" autocomplete="off" maxlength="20" />
     </el-form-item>
     <el-form-item prop="case_desc" label="用例描述">
       <el-input v-model="form.case_desc" autocomplete="off" />
@@ -22,9 +22,35 @@
         :props="defaultProps"
       />
     </el-form-item>
+    <!-- <el-form-item prop="case_group_id" label="适用阶段">
+      <el-tree-select
+        ref="refEltree"
+        v-model="form.case_group_id"
+        @change="handleChange"
+        check-strictly
+        lazy
+        nodeKey="id"
+        :load="load"
+        :props="defaultProps"
+      />
+    </el-form-item>
+    <el-form-item prop="case_group_id" label="用例分类">
+      <el-tree-select
+        ref="refEltree"
+        v-model="form.case_group_id"
+        @change="handleChange"
+        check-strictly
+        lazy
+        nodeKey="id"
+        :load="load"
+        :props="defaultProps"
+      />
+    </el-form-item> -->
   </el-form>
 </template>
 <script setup>
+
+
 import { defineProps, defineExpose, ref, watchEffect, nextTick } from 'vue'
 import axios from '@/lin/plugin/axios'
 let props = defineProps({
@@ -62,6 +88,9 @@ let load = async function (node, resolve) {
       })),
     ]
     resolve(nodeData)
+    if (nodeData.length > 0 && !props.form.id) {
+      props.form.case_group_id = nodeData[0].id
+    }
   } else if (level === 1) {
     const { id } = node.data.otherData
     if (id === '-1') {

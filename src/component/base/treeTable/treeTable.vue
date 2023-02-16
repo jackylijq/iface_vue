@@ -49,7 +49,14 @@ export default {
     // background-color: red;
     overflow-y: auto;
     box-sizing: border-box;
-    border-right: 1px solid #efefef;
+    // border-right: 1px solid #efefef;
+
+    :deep .base-tree{
+      .el-tree-node,.el-tree-node__content{
+        height: 40px;
+        line-height: 40px;
+      }
+    }
   }
 
   .table-box {
