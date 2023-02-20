@@ -37,6 +37,7 @@ export default {
       props,
       (newProps) => {
         if(newProps.level.level !== 3) {
+          console.log(data.activeName,'data.activeName')
           data.activeName = '0'
         }
       }
