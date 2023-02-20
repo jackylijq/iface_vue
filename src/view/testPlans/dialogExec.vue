@@ -1,20 +1,32 @@
 <template>
   <div>
-    执行环境：<el-select
-      v-model="selectValue"
-      @change="v => emits('input', v)"
-      class="m-2"
-      placeholder="请选择执行环境"
-    >
+    <span>执行环境：</span>
+    <el-select v-model="selectValue.branch" @change="v => emits('input', v)" class="m-2" placeholder="请选择执行环境">
       <el-option v-for="item in options" :key="item.id" :label="item.env_name" :value="item.branch" />
     </el-select>
   </div>
+  <div>
+    <span>host地址：</span>
+    <p>{{ selectValue.env_host }}</p>
+  </div>
+  <div>
+    <span>数据库信息：</span>
+    <p>{{ selectValue.db_host }}:{{ selectValue.db_port }}</p>
+  </div>
 </template>
 <script setup>
-import { defineProps, defineEmits, ref, onMounted } from 'vue'
+
+
+
+import { defineEmits, ref, onMounted, reactive } from 'vue'
 import axios from '@/lin/plugin/axios'
 
-let selectValue = ref('') //branch
+let selectValue = reactive({
+  branch: '',
+  env_host: '',
+  db_host: '',
+  db_port: '',
+})
 let emits = defineEmits(['input'])
 
 let options = ref([])
@@ -30,10 +42,31 @@ let getOptions = async function () {
 
   options.value = res.data.datasList
   if (options.value.length > 0) {
-    selectValue.value = options.value[0].branch
-    emits('input', selectValue.value)
+    let { branch, env_host, db_host, db_port } = options.value[0]
+    selectValue.branch = branch
+    selectValue.env_host = env_host
+    selectValue.db_host = db_host
+    selectValue.db_port = db_port
+    emits('input', selectValue.branch)
   }
 }
 onMounted(() => getOptions())
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+div {
+  display: flex;
+
+  height: 32px;
+  line-height: 32px;
+
+  > span {
+    display: inline-block;
+    width: 85px;
+    text-align: right;
+    // padding-right: 4px;
+  }
+  > p {
+    line-height: inherit;
+  }
+}
+</style>

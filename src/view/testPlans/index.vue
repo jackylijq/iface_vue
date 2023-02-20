@@ -58,7 +58,7 @@ let treeConfig = unref({
         data: {
           project_line_id: 1,
           parents_id: 0,
-          group_type: 'scene',
+          group_type: 'plan',
         },
       })
       const nodeData = [
@@ -86,7 +86,7 @@ let treeConfig = unref({
         data: {
           project_line_id: 1,
           parents_id: id,
-          group_type: 'scene',
+          group_type: 'plan',
         },
       })
       resolve(

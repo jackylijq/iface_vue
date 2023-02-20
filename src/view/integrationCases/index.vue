@@ -17,8 +17,8 @@
           <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例状态" min-width="100px" />
           <el-table-column :show-overflow-tooltip="true" prop="exe_result" label="执行结果" min-width="100px" />
           <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="更新人员" min-width="100px" />
-          <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" min-width="150px" />
-          <el-table-column :show-overflow-tooltip="true" prop="exe_time" label="执行时间" min-width="150px" />
+          <!-- <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" min-width="150px" />
+          <el-table-column :show-overflow-tooltip="true" prop="exe_time" label="执行时间" min-width="150px" /> -->
 
           <el-table-column label="操作" width="300px">
             <template #default="scope">
