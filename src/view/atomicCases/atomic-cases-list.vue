@@ -16,10 +16,16 @@
       </template>
 
       <template #table>
-        <el-table :data="tableData" stripe style="width: 100%" @row-click="handleRowClick">
+        <el-table
+          v-if="searchType === 'case_title'"
+          :data="tableData"
+          stripe
+          style="width: 100%"
+          @row-click="handleRowClick"
+        >
           <el-table-column :show-overflow-tooltip="true" prop="id" label="用例编号" width="100px" />
           <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
-          <!-- <el-table-column :show-overflow-tooltip="true" prop="request_url" label="接口路径" /> -->
+
           <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" />
           <!-- <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" width="150px" />
@@ -35,6 +41,14 @@
             </template>
           </el-table-column>
         </el-table>
+
+        <el-table v-else :data="tableData" stripe style="width: 100%" @row-click="handleRowClick">
+          <el-table-column :show-overflow-tooltip="true" prop="id" label="接口ID" />
+          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="project_id" label="项目名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="group_id" label="分组名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="request_url" label="接口路径" />
+        </el-table>
       </template>
     </treeTable>
   </div>
@@ -42,7 +56,7 @@
 <script>
 import treeTable from '@/component/base/treeTable/treeTable.vue'
 import axios from '@/lin/plugin/axios'
-import { ref, unref, computed, nextTick } from 'vue'
+import { ref, unref, computed, nextTick,watch } from 'vue'
 import router from '../../router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -112,7 +126,7 @@ export default {
               group_id,
               project_id,
               curPage: 1,
-              pageSize: 100,
+              pageSize: 1000,
             },
           })
           resolve(
@@ -140,28 +154,28 @@ export default {
         const { level } = node
         canCreate.value = level != 3
         if (level === 1) {
-          tableParams.value = {
-            project_id: data.otherData.id,
-          }
+          tableParams.value.project_id = data.otherData.id
+          tableParams.value.group_id = undefined
+          tableParams.value.iface_id = undefined
         } else if (level === 2) {
           const { id: group_id, project_id } = data.otherData
-          tableParams.value = {
-            group_id,
-            project_id,
-          }
+          tableParams.value.project_id = project_id
+          tableParams.value.group_id = group_id
+          tableParams.value.iface_id = undefined
         } else if (level === 3) {
           const { id: iface_id, group_id, project_id } = data.otherData
-          tableParams.value = {
-            iface_id,
-            group_id,
-            project_id,
-          }
+          tableParams.value.iface_id = iface_id
+          tableParams.value.group_id = group_id
+          tableParams.value.project_id = project_id
         }
         getTableData()
       },
     })
 
     let searchType = ref('case_title')
+    watch(() => searchType.value, () => {
+      getTableData()
+    })
     const searchConfig = computed(() => ({
       buttonList: [
         {
@@ -293,6 +307,7 @@ export default {
       iface_id: '',
     })
     let getTableData = async function () {
+      tableParams.value[unref(searchType) === 'case_title' ? 'request_url':'case_title' ] = undefined
       let data = {
         ...unref(tableParams),
         ...unref(pageConfig),
@@ -300,9 +315,10 @@ export default {
       if (!data.project_id || data.project_id === '-1') delete data.project_id
       if (!data.iface_id) delete data.iface_id
 
+      let url = unref(searchType) === 'case_title' ? '/iftest/case/standStom/list' : '/iftest/iface/iface_list'
       const res = await axios({
         method: 'post',
-        url: '/iftest/case/standStom/list',
+        url,
         data,
       })
 
