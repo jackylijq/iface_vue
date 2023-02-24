@@ -4,9 +4,8 @@
       {{ item.label }}
     </el-button>
 
-    <Search @query="doQuery">
-      <template v-if="$slots.prepend" #prepend>
-        <slot name="prepend"></slot> </template
+    <Search @query="doQuery" :defaultSearchValue="defaultSearchValue">
+      <template v-if="$slots.prepend" #prepend> <slot name="prepend"></slot> </template
     ></Search>
   </div>
 </template>
@@ -37,6 +36,10 @@ export default {
           },
         ]
       },
+    },
+    defaultSearchValue: {
+      type: String,
+      default: '',
     },
     query: {
       type: Function,

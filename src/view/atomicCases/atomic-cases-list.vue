@@ -34,19 +34,23 @@
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
           <el-table-column prop="address" label="操作" width="300">
             <template #default="scope">
-              <el-button type="primary" text size="small" @click="testClick(scope)">测试</el-button>
-              <el-button size="small" @click="copyClick(scope)">复制</el-button>
-              <el-button size="small" @click="editClick(scope)">编辑</el-button>
-              <el-button type="danger" size="small" @click="delClick(scope)">删除</el-button>
+              <el-button type="primary" text size="small" @click.stop="testClick(scope)">测试</el-button>
+              <el-button size="small" @click.stop="copyClick(scope)">复制</el-button>
+              <el-button size="small" @click.stop="editClick(scope)">编辑</el-button>
+              <el-button type="danger" size="small" @click.stop="delClick(scope)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
 
         <el-table v-else :data="tableData" stripe style="width: 100%" @row-click="handleRowClick">
           <el-table-column :show-overflow-tooltip="true" prop="id" label="接口ID" />
-          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
-          <el-table-column :show-overflow-tooltip="true" prop="project_id" label="项目名称" />
-          <el-table-column :show-overflow-tooltip="true" prop="group_id" label="分组名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称">
+            <template #default="{ row }">
+              <a style="color: #3963bc">{{ row.iface_name }}</a>
+            </template>
+          </el-table-column>
+          <el-table-column :show-overflow-tooltip="true" prop="project_name" label="项目名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="group_name" label="分组名称" />
           <el-table-column :show-overflow-tooltip="true" prop="request_url" label="接口路径" />
         </el-table>
       </template>
@@ -56,16 +60,17 @@
 <script>
 import treeTable from '@/component/base/treeTable/treeTable.vue'
 import axios from '@/lin/plugin/axios'
-import { ref, unref, computed, nextTick,watch } from 'vue'
+import { ref, unref, computed, nextTick, watch, onBeforeMount } from 'vue'
 import router from '../../router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
+import Utils from 'lin/util/util'
 export default {
   components: { treeTable },
   setup() {
     const canCreate = ref(true)
     const currentNodeKey = ref('')
     const defaultExpandedKeys = ref([])
+    const projectData = ref([])
     const treeConfig = ref({
       data: [],
       lazy: true,
@@ -86,6 +91,7 @@ export default {
               otherData: v,
             })),
           ]
+          projectData.value = nodeData
           resolve(nodeData)
           defaultExpandedKeys.value = [nodeData[0]?.id]
           currentNodeKey.value = nodeData[0]?.id
@@ -173,9 +179,12 @@ export default {
     })
 
     let searchType = ref('case_title')
-    watch(() => searchType.value, () => {
-      getTableData()
-    })
+    watch(
+      () => searchType.value,
+      () => {
+        getTableData()
+      },
+    )
     const searchConfig = computed(() => ({
       buttonList: [
         {
@@ -195,13 +204,22 @@ export default {
           emit: 'delete',
         },
       ],
+      defaultSearchValue: tableParams.value.case_title,
       query(v) {
         tableParams.value[unref(searchType)] = v || undefined
-
+        // 存储搜索参数
+        if (unref(searchType) === 'case_title') window.localStorage.setItem('atomic-cases-list-search', v)
         // TODO: 根据搜索类型调整表格
         getTableData()
       },
     }))
+
+    onBeforeMount(() => {
+      if (unref(searchType) === 'case_title') {
+        let recodeSearchValue = window.localStorage.getItem('atomic-cases-list-search')
+        tableParams.value[unref(searchType)] = recodeSearchValue
+      }
+    })
 
     // 点击创建
     const btnCreate = function () {
@@ -223,18 +241,23 @@ export default {
       router.push({ path: '/atomiccase/edit', query: params })
     }
 
-    let handleRowClick = function (row) {
+    let handleRowClick = function ({ project_id, group_id, iface_id, id }) {
       defaultExpandedKeys.value = [
-        `${row.project_id}`,
-        `${row.project_id}-${row.group_id}`,
-        `${row.project_id}-${row.group_id}-${row.iface_id}`,
+        `${project_id}`,
+        `${project_id}-${group_id}`,
+        `${project_id}-${group_id}-${iface_id || id}`,
       ]
-      currentNodeKey.value = `${row.project_id}-${row.group_id}`
+      currentNodeKey.value = `${project_id}-${group_id}-${iface_id || id}`
+
+      tableParams.value.project_id = project_id
+      tableParams.value.group_id = group_id
+      tableParams.value.iface_id = iface_id || id
+      searchType.value = 'case_title'
     }
 
     // 点击测试按钮
     const testClick = async function (scope) {
-      let params = { test_case: [] }
+      let params = { plan_list: [], scene_list: [], test_case: [], branch: 'test' }
       params.test_case = [scope.row.id]
       const res = await axios({
         method: 'post',
@@ -306,8 +329,8 @@ export default {
       project_id: '',
       iface_id: '',
     })
-    let getTableData = async function () {
-      tableParams.value[unref(searchType) === 'case_title' ? 'request_url':'case_title' ] = undefined
+    let getTableData = Utils.debounce(async function () {
+      tableParams.value[unref(searchType) === 'case_title' ? 'request_url' : 'case_title'] = undefined
       let data = {
         ...unref(tableParams),
         ...unref(pageConfig),
@@ -322,14 +345,35 @@ export default {
         data,
       })
 
-      const { datasList, curPage, pageSize, total } = res.data
+      let { datasList, curPage, pageSize, total } = res.data
+      if (searchType.value === 'case_title') {
+      } else {
+        // 查询分组名
+        const groupRes = await axios({
+          method: 'post',
+          url: '/iftest/iface/group/list',
+          data: {
+            id: datasList.map(v => v.group_id),
+          },
+        })
+
+        datasList = datasList.map(v => {
+          let { label: project_name } = projectData.value.find(e => e.id == v.project_id) || {}
+          let { group_name } = groupRes.data.datasList.find(e => e.id == v.group_id) || {}
+          return {
+            ...v,
+            project_name,
+            group_name,
+          }
+        })
+      }
       tableData.value = datasList
       pageConfig.value = {
         curPage,
         pageSize,
       }
       totalConfig.value = total
-    }
+    }, 400)
 
     const computedPageConfig = computed(() => ({
       currentPage: unref(pageConfig).curPage,
