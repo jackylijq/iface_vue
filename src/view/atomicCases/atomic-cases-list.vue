@@ -378,8 +378,8 @@ export default {
       formData.name = iface_name
       formData.address = request_url
       formData.method = request_method
-      let req_headersJson = req_headers.replace('(','').replace(')','').replace('ObjectId','')
-      let req_bodyJson = req_headers.replace('(','').replace(')','').replace('ObjectId','')
+      let req_headersJson = req_headers.replace(RegExp("[(]", "g"),'').replace(RegExp("[)]", "g"),'').replace(RegExp("ObjectId", "g"),'')
+      let req_bodyJson = req_body.replace(RegExp("[(]", "g"),'').replace(RegExp("[)]", "g"),'').replace(RegExp("ObjectId", "g"),'')
       applyTableData.value = JSON.parse('['+req_headersJson+']')
       queryTableData.value = JSON.parse('['+req_bodyJson+']')
       backTableData.value = objToTree(res_body.properties)
