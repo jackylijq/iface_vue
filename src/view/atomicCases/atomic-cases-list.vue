@@ -6,8 +6,8 @@
       @create="btnCreate"
       :pageConfig="computedPageConfig"
       @current-change="currentChange"
-      @size-change="sizeChange"
       :level="levelData"
+      @size-change="sizeChange"
     >
       <template #prepend>
         <el-select v-model="searchType" style="width: 100px">
@@ -17,10 +17,16 @@
       </template>
 
       <template #table>
-        <el-table :data="tableData" stripe style="width: 100%" @row-click="handleRowClick">
+        <el-table
+          v-if="searchType === 'case_title'"
+          :data="tableData"
+          stripe
+          style="width: 100%"
+          @row-click="handleRowClick"
+        >
           <el-table-column :show-overflow-tooltip="true" prop="id" label="用例编号" width="100px" />
           <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
-          <!-- <el-table-column :show-overflow-tooltip="true" prop="request_url" label="接口路径" /> -->
+
           <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" />
           <!-- <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" width="150px" />
@@ -35,6 +41,13 @@
               <el-button type="danger" size="small" @click="delClick(scope)">删除</el-button>
             </template>
           </el-table-column>
+        </el-table>
+        <el-table v-else :data="tableData" stripe style="width: 100%" @row-click="handleRowClick">
+          <el-table-column :show-overflow-tooltip="true" prop="id" label="接口ID" />
+          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="project_id" label="项目名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="group_id" label="分组名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="request_url" label="接口路径" />
         </el-table>
       </template>
       <template #view>
@@ -86,7 +99,7 @@
 <script>
 import treeTable from '@/component/base/treeTable/treeTableTab.vue'
 import axios from '@/lin/plugin/axios'
-import { ref, unref, computed, nextTick,reactive } from 'vue'
+import { ref, unref, computed, nextTick,watch,reactive } from 'vue'
 import router from '../../router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -112,8 +125,7 @@ export default {
         method:''
     })
     const handleClick = (tab, event) => {
-    }
-    
+    } 
     const treeConfig = ref({
       data: [],
       lazy: true,
@@ -174,7 +186,7 @@ export default {
               group_id,
               project_id,
               curPage: 1,
-              pageSize: 100,
+              pageSize: 1000,
             },
           })
           resolve(
@@ -202,23 +214,21 @@ export default {
         const { level } = node
         canCreate.value = level != 3
         if (level === 1) {
-          tableParams.value = {
-            project_id: data.otherData.id,
-          }
+          tableParams.value.project_id = data.otherData.id
+          tableParams.value.group_id = undefined
+          tableParams.value.iface_id = undefined
         } else if (level === 2) {
           const { id: group_id, project_id } = data.otherData
-          tableParams.value = {
-            group_id,
-            project_id,
-          }
+          tableParams.value.project_id = project_id
+          tableParams.value.group_id = group_id
+          tableParams.value.iface_id = undefined
         } else if (level === 3) {
           const { id: iface_id, group_id, project_id } = data.otherData
-          tableParams.value = {
-            iface_id,
-            group_id,
-            project_id,
-          }
+          tableParams.value.iface_id = iface_id
+          tableParams.value.group_id = group_id
+          tableParams.value.project_id = project_id
           getIfaceDetail(iface_id)
+
         }
         levelData.level = level
         console.log(levelData.level,'levelData.level')
@@ -227,6 +237,9 @@ export default {
     })
 
     let searchType = ref('case_title')
+    watch(() => searchType.value, () => {
+      getTableData()
+    })
     const searchConfig = computed(() => ({
       buttonList: [
         {
@@ -428,6 +441,7 @@ export default {
           return arr;
     }
     let getTableData = async function () {
+      tableParams.value[unref(searchType) === 'case_title' ? 'request_url':'case_title' ] = undefined
       let data = {
         ...unref(tableParams),
         ...unref(pageConfig),
@@ -435,9 +449,10 @@ export default {
       if (!data.project_id || data.project_id === '-1') delete data.project_id
       if (!data.iface_id) delete data.iface_id
 
+      let url = unref(searchType) === 'case_title' ? '/iftest/case/standStom/list' : '/iftest/iface/iface_list'
       const res = await axios({
         method: 'post',
-        url: '/iftest/case/standStom/list',
+        url,
         data,
       })
 
@@ -627,5 +642,4 @@ export default {
   font-size: 18px;
   background-size: 14px;
 }
-
 </style>
