@@ -278,7 +278,7 @@ export default {
     onBeforeMount(() => {
       if (unref(searchType) === 'case_title') {
         let recodeSearchValue = window.localStorage.getItem('atomic-cases-list-search')
-        tableParams.value[unref(searchType)] = recodeSearchValue
+        tableParams.value[unref(searchType)] = recodeSearchValue===null?"":recodeSearchValue
       }
     })
 
@@ -390,6 +390,7 @@ export default {
     let applyTableData = ref([])
     let backTableData = ref([])
     let tableParams = ref({
+      case_title:"",
       project_id: '',
       iface_id: '',
     })
