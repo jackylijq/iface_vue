@@ -268,9 +268,14 @@ export default {
       ],
       defaultSearchValue: tableParams.value.case_title,
       query(v) {
-        tableParams.value[unref(searchType)] = v || undefined
+        tableParams.value = {
+          [unref(searchType)]: v || undefined
+        }
 
+        currentNodeKey.value = -1
+        
         // TODO: 根据搜索类型调整表格
+
         getTableData()
       },
     }))
