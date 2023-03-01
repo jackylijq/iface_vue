@@ -1,6 +1,6 @@
 <template>
   <div class="lin-search">
-    <el-input :placeholder="placeholder" clearable v-model="keyword" class="input-with-select">
+    <el-input :placeholder="placeholder" clearable v-model="keyword" @keyup.enter.native="search" class="input-with-select">
       <template v-if="$slots.prepend" #prepend>
         <slot name="prepend"></slot>
       </template>
@@ -31,17 +31,25 @@ export default {
       keyword: '',
     }
   },
-  mounted() {
-    if (this.defaultSearchValue) {
-      this.keyword = this.defaultSearchValue
+  watch: {
+    defaultSearchValue:{
+      handler() {
+        this.keyword = this.defaultSearchValue
+      },
+      
     }
+  },
+  mounted() {
+    // if (this.defaultSearchValue) {
+    //   this.keyword = this.defaultSearchValue
+    // }
     // 节流搜索
-    this.$watch(
-      'keyword',
-      Utils.debounce(newQuery => {
-        this.$emit('query', newQuery)
-      }, 300),
-    )
+    // this.$watch(
+    //   'keyword',
+    //   Utils.debounce(newQuery => {
+    //     this.$emit('query', newQuery)
+    //   }, 300),
+    // )
   },
   methods: {
     clear() {
