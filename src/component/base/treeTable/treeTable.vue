@@ -51,8 +51,9 @@ export default {
     box-sizing: border-box;
     // border-right: 1px solid #efefef;
 
-    :deep .base-tree{
-      .el-tree-node,.el-tree-node__content{
+    :deep .base-tree {
+      .el-tree-node,
+      .el-tree-node__content {
         min-height: 40px;
         line-height: 40px;
       }

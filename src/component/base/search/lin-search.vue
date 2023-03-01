@@ -1,10 +1,10 @@
 <template>
   <div class="lin-search">
-    <el-input :placeholder="placeholder" clearable v-model="keyword" class="input-with-select">
-      <template v-if="$slots.prepend"  #prepend>
+    <el-input :placeholder="placeholder" clearable v-model="keyword" @keyup.enter.native="search" class="input-with-select">
+      <template v-if="$slots.prepend" #prepend>
         <slot name="prepend"></slot>
       </template>
-      
+
       <template #suffix>
         <i class="el-input__icon el-icon-search" @click="search"></i>
       </template>
@@ -17,6 +17,10 @@ import Utils from 'lin/util/util'
 
 export default {
   props: {
+    defaultSearchValue: {
+      type: String,
+      default: '',
+    },
     placeholder: {
       type: String,
       default: '请输入内容',
@@ -27,14 +31,25 @@ export default {
       keyword: '',
     }
   },
-  created() {
+  watch: {
+    defaultSearchValue:{
+      handler() {
+        this.keyword = this.defaultSearchValue
+      },
+      
+    }
+  },
+  mounted() {
+    // if (this.defaultSearchValue) {
+    //   this.keyword = this.defaultSearchValue
+    // }
     // 节流搜索
-    this.$watch(
-      'keyword',
-      Utils.debounce(newQuery => {
-        this.$emit('query', newQuery)
-      }, 1000),
-    )
+    // this.$watch(
+    //   'keyword',
+    //   Utils.debounce(newQuery => {
+    //     this.$emit('query', newQuery)
+    //   }, 300),
+    // )
   },
   methods: {
     clear() {
