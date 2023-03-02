@@ -343,6 +343,12 @@ export default {
         `${project_id}-${group_id}`,
         `${project_id}-${group_id}-${iface_id || id}`,
       ]
+
+      if (!iface_id && id) {
+        levelData.level = 3
+        getIfaceDetail(id);
+      }
+
       currentNodeKey.value = `${project_id}-${group_id}-${iface_id || id}`
 
       tableParams.value.project_id = project_id
