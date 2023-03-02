@@ -16,13 +16,13 @@ import LinNotify from '@/component/notify'
 import LIcon from '@/component/base/icon/lin-icon'
 import StickyTop from '@/component/base/sticky-top/sticky-top'
 import SourceCode from '@/component/base/source-code/source-code'
-
+import JsonEditorVue from 'json-editor-vue3'
 import '@/assets/style/index.scss'
 import 'element-plus/dist/index.css'
 import '@/assets/style/realize/element-variable.scss'
 
 const app = createApp(App)
-
+app.use(JsonEditorVue)
 app.use(store)
 app.use(router)
 app.use(ElementPlus, { locale })
