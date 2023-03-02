@@ -17,15 +17,13 @@
       </template>
 
       <template #table>
-        <el-table
-          v-if="searchType === 'case_title'"
-          :data="tableData"
-          stripe
-          style="width: 100%"
-          @row-click="handleRowClick"
-        >
+        <el-table v-if="searchType === 'case_title'" :data="tableData" stripe style="width: 100%">
           <el-table-column :show-overflow-tooltip="true" prop="id" label="用例编号" width="100px" />
-          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称">
+            <template #default="{ row }">
+              <a style="color: #3963bc" @click="handleRowClick(row)">{{ row.iface_name }}</a>
+            </template>
+          </el-table-column>
 
           <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" />
           <!-- <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" /> -->
@@ -42,11 +40,11 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-table v-else :data="tableData" stripe style="width: 100%" @row-click="handleRowClick">
+        <el-table v-else :data="tableData" stripe style="width: 100%">
           <el-table-column :show-overflow-tooltip="true" prop="id" label="接口ID" />
           <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称">
             <template #default="{ row }">
-              <a style="color: #3963bc">{{ row.iface_name }}</a>
+              <a style="color: #3963bc" @click="handleRowClick(row)">{{ row.iface_name }}</a>
             </template>
           </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="project_name" label="项目名称" />
@@ -70,7 +68,7 @@
           <div class="headerTitle">请求参数</div>
           <div class="apply">
             <div class="applyTitle">Headers:</div>
-            <el-table :data="applyTableData" stripe style="width: 100%" @row-click="handleRowClick">
+            <el-table :data="applyTableData" stripe style="width: 100%">
               <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" />
               <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值" />
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
@@ -82,7 +80,6 @@
               :data="queryTableData"
               stripe
               style="width: 100%"
-              @row-click="handleRowClick"
               :tree-props="{ children: 'children' }"
               row-key="name"
             >
@@ -98,7 +95,6 @@
             :data="backTableData"
             stripe
             style="width: 100%"
-            @row-click="handleRowClick"
             row-key="name"
             :tree-props="{ children: 'children' }"
           >
@@ -241,20 +237,23 @@ export default {
           tableParams.value.project_id = data.otherData.id
           tableParams.value.group_id = undefined
           tableParams.value.iface_id = undefined
+          currentNodeKey.value = `${tableParams.value.project_id}`
         } else if (level === 2) {
           const { id: group_id, project_id } = data.otherData
           tableParams.value.project_id = project_id
           tableParams.value.group_id = group_id
           tableParams.value.iface_id = undefined
+          currentNodeKey.value = `${project_id}-${group_id}`
         } else if (level === 3) {
-          const { id: iface_id, group_id, project_id } = data.otherData
+          // const { id: iface_id, group_id, project_id } = data.otherData
           tableParams.value.iface_id = iface_id
           tableParams.value.group_id = group_id
           tableParams.value.project_id = project_id
+          currentNodeKey.value = `${project_id}-${group_id}-${iface_id || id}`
           getIfaceDetail(iface_id)
         }
         levelData.level = level
-        console.log(levelData.level, 'levelData.level')
+
         getTableData()
       },
     })
@@ -344,9 +343,9 @@ export default {
         `${project_id}-${group_id}-${iface_id || id}`,
       ]
 
-      if (!iface_id && id) {
+      if (iface_id || id) {
         levelData.level = 3
-        getIfaceDetail(id);
+        getIfaceDetail(iface_id || id)
       }
 
       currentNodeKey.value = `${project_id}-${group_id}-${iface_id || id}`
