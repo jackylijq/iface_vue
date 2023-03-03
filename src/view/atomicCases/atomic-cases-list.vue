@@ -245,7 +245,7 @@ export default {
           tableParams.value.iface_id = undefined
           currentNodeKey.value = `${project_id}-${group_id}`
         } else if (level === 3) {
-          // const { id: iface_id, group_id, project_id } = data.otherData
+          const { id: iface_id, group_id, project_id } = data.otherData
           tableParams.value.iface_id = iface_id
           tableParams.value.group_id = group_id
           tableParams.value.project_id = project_id
