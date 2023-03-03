@@ -113,7 +113,7 @@
 <script>
 import treeTable from '@/component/base/treeTable/treeTableTab.vue'
 import axios from '@/lin/plugin/axios'
-import { ref, unref, computed, nextTick, watch, reactive, onBeforeMount } from 'vue'
+import { ref, unref, computed, nextTick, watch, reactive, onMounted } from 'vue'
 import router from '../../router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Utils from 'lin/util/util'
@@ -309,11 +309,25 @@ export default {
       },
     }))
 
-    onBeforeMount(() => {
-      // if (unref(searchType) === 'case_title') {
-      //   let recodeSearchValue = null // window.localStorage.getItem('atomic-cases-list-search')
-      //   tableParams.value[unref(searchType)] = recodeSearchValue === null ? '' : recodeSearchValue
-      // }
+    onMounted(() => {
+      // 设置状态
+      let statusInfo = JSON.parse(window.sessionStorage.getItem('atomic-cases-list_status') || '{}')
+      nextTick(() => {
+        if (statusInfo.currentNodeKey) {
+          let [project_id, group_id, iface_id] = statusInfo.currentNodeKey.split('-')
+          tableParams.value.iface_id = iface_id
+          tableParams.value.group_id = group_id
+          tableParams.value.project_id = project_id
+
+          currentNodeKey.value = "-1"
+          defaultExpandedKeys.value = []
+          setTimeout(() => {
+            if (statusInfo.defaultExpandedKeys) defaultExpandedKeys.value = statusInfo.defaultExpandedKeys
+            currentNodeKey.value = statusInfo.currentNodeKey
+            window.sessionStorage.removeItem('atomic-cases-list_status')
+          },100)
+        }
+      })
     })
 
     // 点击创建
@@ -323,7 +337,11 @@ export default {
 
     // 点击编辑
     const editClick = function (scope) {
-      let params = { ...scope.row }
+      let params = {
+        ...scope.row,
+        defaultExpandedKeys: unref(this.defaultExpandedKeys),
+        currentNodeKey: unref(this.currentNodeKey),
+      }
       params.req_body = JSON.stringify(params.req_body)
       params.res_body = JSON.stringify(params.res_body)
       // params.case_status = JSON.stringify(params.case_status);

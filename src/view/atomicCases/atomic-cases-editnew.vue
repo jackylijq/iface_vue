@@ -216,7 +216,7 @@
 <script>
 import { ref, reactive, unref,onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import router from '@/router'
+import vueRouter from '@/router'
 import axios from '@/lin/plugin/axios'
 import { ElMessage } from 'element-plus'
 import emitter from 'lin/util/emitter'
@@ -825,6 +825,10 @@ setup() {
         ElMessage[res.code == 200 ? 'success' : 'error'](res.message)
         if (res.code == 200) {
           emitter.emit('custom-close')
+
+          let { defaultExpandedKeys, currentNodeKey } = tableParams;
+          window.sessionStorage.setItem("atomic-cases-list_status",JSON.stringify({defaultExpandedKeys,currentNodeKey}))
+          vueRouter.push("/atomiccase/list")
         }
   }
   function getCaseVariable (val) {
