@@ -27,7 +27,7 @@
           </el-form-item>
         </el-form>
         <div class="applyTitle">Headers:</div>
-        <el-table :data="applyTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+        <el-table :data="applyTableData" stripe class="headerTable" :default-expand-all="true" row-key="name" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
           <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
           <el-table-column :show-overflow-tooltip="true" prop="desc" label="备注" />
@@ -43,7 +43,7 @@
         <el-tabs v-model:activeName="data.activeName" @tab-click="handleClick" class="table-box">
           <el-tab-pane label="全量配置" name="0" ref="sectionRef">
             <div class="headerTitle">请求参数</div>
-            <el-table :data="queryTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+            <el-table :data="queryTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
               <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
               <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
@@ -61,7 +61,7 @@
               <el-table-column :show-overflow-tooltip="true" prop="queryValue" label="参数化值"/>
             </el-table>
             <div class="headerTitle">响应参数</div>
-            <el-table :data="backTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+            <el-table :data="backTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
               <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
               <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
@@ -91,7 +91,7 @@
               show-icon>
             </el-alert>
             <div style='font-size:12px;margin: 15px 0 ;'><span style="color: red">*</span >请求参数</div>
-              <JsonEditorVue v-model="requestJson" @blur="validate" currentMode="form" :mode="'code'"/>
+              <JsonEditorVue v-model="requestJson" @blur="validate" currentMode="code"/>
               <!-- <vue-json-editor
                 v-model="requestJson"
                 :showBtns="false"
@@ -101,7 +101,7 @@
                 @has-error="onError"
               /> -->
             <div style='font-size:12px;margin: 15px 0'><span style="color: red">*</span>响应参数</div>
-            <JsonEditorVue v-model="responseJson" @blur="validate" currentMode="form" :mode="'code'"/>
+            <JsonEditorVue v-model="responseJson" @blur="validate" currentMode="code"/>
 
             <!-- <vue-json-editor
                 v-model="responseJson"
@@ -165,13 +165,14 @@
             </el-popover>
           </span>
         </div>
-        <el-table :data="checkResponseTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+        <el-table :data="checkResponseTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="type" label="类型" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="checked" label="是否检查" width="auto">
             <template v-slot="scope">
-              <el-checkbox v-model="scope.row.isChecked" @change="responseSqlCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
+              <el-checkbox v-if="scope.row.name!=='code'" v-model="scope.row.isChecked" @change="responseSqlCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
+              <el-checkbox v-if="scope.row.name=='code'" v-model="scope.row.isChecked" disabled>是</el-checkbox>
             </template>
           </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="checkValue" label="检查值" width="500">
@@ -208,7 +209,7 @@
             style="width:650px">
           </el-input>
         </div>
-        <el-table :data="checkQueryTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+        <el-table :data="checkQueryTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
           <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
           <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
@@ -358,6 +359,12 @@ setup() {
       checkedList.value.forEach(item => {
         setCheckedItem(checkQueryTableData.value,item)
       })
+      checkResponseTableData.value.forEach(i => {
+        if(i.name == 'code') {
+          i.isChecked = true
+          i.checkValue = i.value
+        }
+      })
     }
     step.value = val
   }
@@ -502,13 +509,51 @@ setup() {
       if(data.activeName == '1') {
         requestJson.value = firstTrans(queryTableData.value)
         responseJson.value = firstTrans(backTableData.value)
+        getCaseVariable(queryTableData.value)
+        getResultVariable(backTableData.value)
         // isFirstTrans = false
       }else if(data.activeName == '0') {
         queryTableData.value = backTrans(requestJson.value)
         backTableData.value = backTrans(responseJson.value)
-        addBaseInfo(queryTableData.value,'query')
-        addBaseInfo(backTableData.value,'response')
+        // addBaseInfo(queryTableData.value,'query')
+        // addBaseInfo(backTableData.value,'response')
+        for (var key in case_variable.value) {
+        addCaseVariable(queryTableData.value,key)
+        }
+        for (var key in result_variable.value) {
+          let arr = result_variable.value[key].replace(/\[|]/g,'').replace(RegExp("0", "g"),'').split('.')
+          addResultariable(backTableData.value,arr,0,key,result_variable.value[key])
+        }
       }
+  }
+  function addCaseVariable (val,key) {
+    val.forEach(item => {
+      if(item.name == key) {
+        item.checked = true
+        item.queryName = key
+        item.queryValue = '$'+key
+      }else {
+        if(item.children) {
+          addCaseVariable(item.children,key)
+        }
+      }
+    })
+  }
+  function addResultariable (val,arr,index,key,url) {
+    if (arr.length == 0 ) return
+    val.forEach(item => {
+      if(item.name == arr[0]) {
+        arr.shift()
+        console.log(arr,'arr')
+        if(arr.length == 0) {
+          item.resonseName = key
+          item.responseUrl = url
+          item.checked = true
+        }else {
+          addResultariable(item.children,arr,index,key,url)
+        }
+      }
+    })
   }
   //接口详情获取数据类型 和 是否必须 存值
   function addBaseInfo (val,type) {
@@ -543,7 +588,13 @@ setup() {
     let obj = {}
     val.forEach(item => {
       if(!item.children) {
-        obj[item.name] = item.value?item.value:''
+        if(item.type == 'null' ){
+          obj[item.name] = null
+        }else if(item.type == 'number') {
+          obj[item.name] = Number(item.value)
+        }else{
+          obj[item.name] = item.value?item.value:''
+        }
       }else if(item.type == 'array' && item.children) {
         obj[item.name] = [firstTrans(item.children)]
       }else if(item.type == 'object' && item.children){
@@ -569,7 +620,12 @@ setup() {
           type:'object',
           children:backTrans(obj[key])
         })
-
+      }else if(obj[key] == null) {
+        arr.push({
+          name:key,
+          type:'null',
+          value:null
+        })
       }else {
         arr.push({
           name:key,
@@ -894,13 +950,17 @@ setup() {
       //   type: 'warning',
       // })
     } 
+    let headerObj = {}
+    applyTableData.value.forEach(el => {
+      headerObj[el.name] = el.value?el.value:''
+    })
     let param = {
       iface_id:tableParams.iface_id,
       case_title:formData.value.case_title,
       case_desc:formData.value.case_desc,
       case_type:formData.value.case_type,
       version:formData.value.version,
-      header:applyTableData.value[0],
+      header:headerObj,
       request_param:requestJson.value,
       response:responseJson.value,
       case_variable:case_variable.value,
