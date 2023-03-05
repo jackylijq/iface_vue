@@ -515,8 +515,8 @@ setup() {
       }else if(data.activeName == '0') {
         queryTableData.value = backTrans(requestJson.value)
         backTableData.value = backTrans(responseJson.value)
-        // addBaseInfo(queryTableData.value,'query')
-        // addBaseInfo(backTableData.value,'response')
+        addBaseInfo(queryTableData.value,'query')
+        addBaseInfo(backTableData.value,'response')
         for (var key in case_variable.value) {
         addCaseVariable(queryTableData.value,key)
         }
@@ -561,7 +561,7 @@ setup() {
         val.forEach(item => {
         let sameItem = queryBaseInfo.value.filter(el => el.name ==item.name)
         if(sameItem.length>0) {
-          item.type = sameItem[0].type
+          // item.type = sameItem[0].type
           item.required = sameItem[0].required
         }
         if(item.children) {
@@ -572,7 +572,7 @@ setup() {
       val.forEach(item => {
         let sameItem = responseBaseInfo.value.filter(el => el.name ==item.name)
         if(sameItem.length>0) {
-          item.type = sameItem[0].type
+          // item.type = sameItem[0].type
           item.required = sameItem[0].required
         }
         if(item.children) {
