@@ -28,7 +28,11 @@
           <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" />
           <!-- <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" width="150px" />
-          <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" width="150px" />
+          <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" width="150px">
+            <template #default="{row}">
+              <span>{{ row.case_status==="failed"?"测试失败":row.case_status==="success"?"测试成功":"未测试" }}</span>
+            </template>
+          </el-table-column>
           <!-- <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
           <el-table-column prop="address" label="操作" width="300">
@@ -113,7 +117,7 @@
 <script>
 import treeTable from '@/component/base/treeTable/treeTableTab.vue'
 import axios from '@/lin/plugin/axios'
-import { ref, unref, computed, nextTick, watch, reactive, onBeforeMount } from 'vue'
+import { ref, unref, computed, nextTick, watch, reactive, onMounted } from 'vue'
 import router from '../../router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Utils from 'lin/util/util'
@@ -309,11 +313,27 @@ export default {
       },
     }))
 
-    onBeforeMount(() => {
-      // if (unref(searchType) === 'case_title') {
-      //   let recodeSearchValue = null // window.localStorage.getItem('atomic-cases-list-search')
-      //   tableParams.value[unref(searchType)] = recodeSearchValue === null ? '' : recodeSearchValue
-      // }
+    onMounted(() => {
+      // 设置状态
+      let statusInfo = JSON.parse(window.sessionStorage.getItem('atomic-cases-list_status') || '{}')
+      nextTick(() => {
+        if (statusInfo.currentNodeKey) {
+          let [project_id, group_id, iface_id] = statusInfo.currentNodeKey.split('-')
+          tableParams.value.iface_id = iface_id
+          tableParams.value.group_id = group_id
+          tableParams.value.project_id = project_id
+
+          currentNodeKey.value = "-1"
+          defaultExpandedKeys.value = []
+          setTimeout(() => {
+            if (statusInfo.defaultExpandedKeys) defaultExpandedKeys.value = statusInfo.defaultExpandedKeys
+            currentNodeKey.value = statusInfo.currentNodeKey
+            window.sessionStorage.removeItem('atomic-cases-list_status')
+            levelData.level = 3
+            getIfaceDetail(iface_id)
+          },100)
+        }
+      })
     })
 
     // 点击创建
@@ -323,7 +343,11 @@ export default {
 
     // 点击编辑
     const editClick = function (scope) {
-      let params = { ...scope.row }
+      let params = {
+        ...scope.row,
+        defaultExpandedKeys: unref(this.defaultExpandedKeys),
+        currentNodeKey: unref(this.currentNodeKey),
+      }
       params.req_body = JSON.stringify(params.req_body)
       params.res_body = JSON.stringify(params.res_body)
       // params.case_status = JSON.stringify(params.case_status);
