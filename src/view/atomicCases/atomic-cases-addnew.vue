@@ -589,7 +589,7 @@ setup() {
     val.forEach(item => {
       if(!item.children) {
         if(item.type == 'null' ){
-          obj[item.name] = null
+          obj[item.name] = ''
         }else if(item.type == 'number') {
           obj[item.name] = Number(item.value)
         }else{
@@ -614,7 +614,7 @@ setup() {
           children:backTrans(obj[key][0])
         })
 
-      }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])) {
+      }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])&& obj[key] !== null) {
         arr.push({
           name:key,
           type:'object',
@@ -623,8 +623,8 @@ setup() {
       }else if(obj[key] == null) {
         arr.push({
           name:key,
-          type:'null',
-          value:null
+          type:'string',
+          value:''
         })
       }else {
         arr.push({
@@ -942,14 +942,11 @@ setup() {
     result_check.response.check_sql =  checkSql.response||""
     result_check.request= checkSqlTransObj(checkQueryTableData.value)
     result_check.request.check_sql =  checkSql.request||""
-    if(checkResponseTableData.value[0].checkValue) {
-      result_check.res_code['code_value'] = checkResponseTableData.value[0].checkValue || ""
+    if(checkResponseTableData.value[0]=='number') {
+      result_check.res_code.code_value= Number(checkResponseTableData.value[0].checkValue)
     }else {
-      // ElMessage({
-      //   message: '请填写code的检查值',
-      //   type: 'warning',
-      // })
-    } 
+      result_check.res_code.code_value= checkResponseTableData.value[0].checkValue
+    }
     let headerObj = {}
     applyTableData.value.forEach(el => {
       headerObj[el.name] = el.value?el.value:''
