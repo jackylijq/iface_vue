@@ -27,7 +27,7 @@
           </el-form-item>
         </el-form>
         <div class="applyTitle">Headers:</div>
-        <el-table :data="applyTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+        <el-table :data="applyTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
           <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
           <el-table-column :show-overflow-tooltip="true" prop="desc" label="备注" />
@@ -43,7 +43,7 @@
         <el-tabs v-model:activeName="data.activeName" @tab-click="handleClick" class="table-box">
           <el-tab-pane label="全量配置" name="0" ref="sectionRef">
             <div class="headerTitle">请求参数</div>
-            <el-table :data="queryTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+            <el-table :data="queryTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
               <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
               <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
@@ -61,7 +61,7 @@
               <el-table-column :show-overflow-tooltip="true" prop="queryValue" label="参数化值"/>
             </el-table>
             <div class="headerTitle">响应参数</div>
-            <el-table :data="backTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+            <el-table :data="backTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
               <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
               <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
@@ -148,13 +148,14 @@
             </el-popover>
           </span>
         </div>
-        <el-table :data="checkResponseTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+        <el-table :data="checkResponseTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="type" label="类型" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="checked" label="是否检查" width="auto">
             <template v-slot="scope">
-              <el-checkbox v-model="scope.row.isChecked" @change="responseSqlCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
+              <el-checkbox v-if="scope.row.name!=='code'" v-model="scope.row.isChecked" @change="responseSqlCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
+              <el-checkbox v-if="scope.row.name=='code'" v-model="scope.row.isChecked" disabled>是</el-checkbox>
             </template>
           </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="checkValue" label="检查值" width="500">
@@ -191,7 +192,7 @@
             style="width:650px">
           </el-input>
         </div>
-        <el-table :data="checkQueryTableData" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+        <el-table :data="checkQueryTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
           <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
           <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
@@ -314,6 +315,12 @@ setup() {
       checkedList.value.forEach(item => {
         setCheckedItem(checkQueryTableData.value,item)
       })
+      checkResponseTableData.value.forEach(i => {
+        if(i.name == 'code') {
+          i.isChecked = true
+          i.checkValue = i.value
+        }
+      })
     }
     step.value = val
   }
@@ -415,12 +422,21 @@ setup() {
       if(data.activeName == '1') {
         requestJson.value = firstTrans(queryTableData.value)
         responseJson.value = firstTrans(backTableData.value)
+        getCaseVariable(queryTableData.value)
+        getResultVariable(backTableData.value)
         // isFirstTrans = false
       }else if(data.activeName == '0') {
         queryTableData.value = backTrans(requestJson.value)
         backTableData.value = backTrans(responseJson.value)
         addBaseInfo(queryTableData.value,'query')
         addBaseInfo(backTableData.value,'response')
+        for (var key in case_variable.value) {
+        addCaseVariable(queryTableData.value,key)
+        }
+        for (var key in result_variable.value) {
+          let arr = result_variable.value[key].replace(/\[|]/g,'').replace(RegExp("0", "g"),'').split('.')
+          addResultariable(backTableData.value,arr,0,key,result_variable.value[key])
+        }
       }
   }
   //接口详情获取数据类型 和 是否必须 存值
@@ -429,7 +445,7 @@ setup() {
         val.forEach(item => {
         let sameItem = queryBaseInfo.value.filter(el => el.name ==item.name)
         if(sameItem.length>0) {
-          item.type = sameItem[0].type
+          // item.type = sameItem[0].type
           item.required = sameItem[0].required
         }
         if(item.children) {
@@ -440,7 +456,7 @@ setup() {
       val.forEach(item => {
         let sameItem = responseBaseInfo.value.filter(el => el.name ==item.name)
         if(sameItem.length>0) {
-          item.type = sameItem[0].type
+          // item.type = sameItem[0].type
           item.required = sameItem[0].required
         }
         if(item.children) {
@@ -456,7 +472,13 @@ setup() {
     let obj = {}
     val.forEach(item => {
       if(!item.children) {
-        obj[item.name] = item.value?item.value:''
+        if(item.type == 'null' ){
+          obj[item.name] = null
+        }else if(item.type == 'number') {
+          obj[item.name] = Number(item.value)
+        }else{
+          obj[item.name] = item.value?item.value:''
+        }
       }else if(item.type == 'array' && item.children) {
         obj[item.name] = [firstTrans(item.children)]
       }else if(item.type == 'object' && item.children){
@@ -475,14 +497,18 @@ setup() {
           type:'array',
           children:backTrans(obj[key][0])
         })
-
-      }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])) {
+      }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])&& obj[key] !== null) {
         arr.push({
           name:key,
           type:'object',
           children:backTrans(obj[key])
         })
-
+      }else if(obj[key] == null) {
+        arr.push({
+          name:key,
+          type:'null',
+          value:null
+        })
       }else {
         arr.push({
           name:key,
@@ -801,6 +827,10 @@ setup() {
       //   type: 'warning',
       // })
     } 
+    let headerObj = {}
+    applyTableData.value.forEach(el => {
+      headerObj[el.name] = el.value?el.value:''
+    })
     let param = {
       iface_id:tableParams.iface_id,
       id:tableParams.id,
@@ -808,7 +838,7 @@ setup() {
       case_desc:formData.value.case_desc,
       case_type:formData.value.case_type,
       version:formData.value.version,
-      header:applyTableData.value,
+      header:headerObj,
       request_param:requestJson.value,
       response:responseJson.value,
       case_variable:case_variable.value,
@@ -928,7 +958,7 @@ setup() {
   }
   const checkSqlList = ref([])
   const checkedList = ref([])
-  const getEditData = function () {
+  const getEditData = async function () {
       tableParams.case_variable = JSON.parse(tableParams.case_variable)
       tableParams.header = JSON.parse(tableParams.header)
       console.log(tableParams.header,'tableParams.header')
@@ -940,7 +970,30 @@ setup() {
       formData.value.case_desc = tableParams.case_desc
       formData.value.version = tableParams.version
       formData.value.case_type = tableParams.case_type
-      applyTableData.value = [tableParams.header]
+      applyTableData.value = []
+      for(var key in tableParams.header) {
+        applyTableData.value.push({
+          name:key,
+          value:tableParams.header[key]
+        })
+      }
+      let applyTableBaseData = []
+      let data = {id:tableParams.iface_id}
+        const res = await axios({
+          method: 'post',
+          url: '/iftest/iface/iface_detail',
+          data,
+        })
+      let req_headersJson = res.data.req_headers.replace(RegExp("[(]", "g"),'').replace(RegExp("[)]", "g"),'').replace(RegExp("ObjectId", "g"),'')
+      applyTableBaseData = JSON.parse('['+req_headersJson+']')
+      headerBaseInfo.value = applyTableBaseData
+      applyTableData.value.forEach(i =>{
+        let sameItem = headerBaseInfo.value.find(e =>{return e.name == i.name})
+        console.log(sameItem,'sameItem')
+        if(sameItem) {
+          i.required = sameItem.required
+        }
+      })
       queryTableData.value = backTrans(tableParams.request_param)
       backTableData.value = backTrans(tableParams.response)
       for (var key in tableParams.case_variable) {
@@ -955,6 +1008,7 @@ setup() {
       getAllChecked(tableParams.result_check.response)
       getRequestAllChecked(tableParams.result_check.request)
   }
+  let headerBaseInfo = ref([])
   function setCheckSqlItem (val,sqlItem) {
     val.forEach(item => {
       if(item.name == sqlItem.name) {
@@ -1048,7 +1102,8 @@ setup() {
     inputBlur,
     itemSqlDisabled,
     checkSqlList,
-    checkedList
+    checkedList,
+    headerBaseInfo
   }
   
 },
