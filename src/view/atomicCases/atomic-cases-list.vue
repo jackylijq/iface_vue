@@ -28,7 +28,11 @@
           <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" />
           <!-- <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" width="150px" />
-          <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" width="150px" />
+          <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" width="150px">
+            <template #default="{row}">
+              <span>{{ row.case_status==="failed"?"测试失败":row.case_status==="success"?"测试成功":"未测试" }}</span>
+            </template>
+          </el-table-column>
           <!-- <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
           <el-table-column prop="address" label="操作" width="300">
@@ -325,6 +329,8 @@ export default {
             if (statusInfo.defaultExpandedKeys) defaultExpandedKeys.value = statusInfo.defaultExpandedKeys
             currentNodeKey.value = statusInfo.currentNodeKey
             window.sessionStorage.removeItem('atomic-cases-list_status')
+            levelData.level = 3
+            getIfaceDetail(iface_id)
           },100)
         }
       })
