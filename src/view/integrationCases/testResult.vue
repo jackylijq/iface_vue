@@ -31,14 +31,16 @@ watchEffect(() => {
 })
 
 let onBack = function () {
-  router.replace({
+  emitter.emit('custom-close')
+  router.push({
     path: '/integrationcases/test',
     query: {
       ...router.currentRoute.value.query,
       case_id: undefined,
+      id:undefined
     },
   })
-  emitter.emit('custom-close')
+  
 }
 </script>
 <style lang="scss" scoped></style>

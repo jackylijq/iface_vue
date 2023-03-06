@@ -37,7 +37,8 @@ let getFormData = async function () {
   let params = {
     case_id: router.currentRoute.value.query.case_id,
     batch_id: router.currentRoute.value.query.batch_id,
-    scene_id:router.currentRoute.value.query.scene_id,
+    scene_id: router.currentRoute.value.query.scene_id,
+    id:router.currentRoute.value.query.id,
     curPage: 1,
     pageSize: 1,
   }

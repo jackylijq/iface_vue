@@ -49,6 +49,7 @@ let handleDetail = function (row) {
     query: {
       ...router.currentRoute.value.query,
       case_id: row.case_id,
+      id:row.id
     },
   })
   // emitter.emit('custom-close')
