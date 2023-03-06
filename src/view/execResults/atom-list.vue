@@ -77,6 +77,7 @@ export default {
       curPage: 1,
       pageSize: 10,
       scene_id: props.caseData.scene_id,
+      batch_id: props.caseData.batch_id
     })
     const totalConfig = ref(0)
     const tableParams = ref({})
@@ -129,6 +130,7 @@ export default {
         curPage,
         pageSize,
         scene_id: props.caseData.scene_id,
+        batch_id: props.caseData.batch_id
       }
       totalConfig.value = total
     }
