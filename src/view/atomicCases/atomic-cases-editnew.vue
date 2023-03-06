@@ -812,21 +812,20 @@ setup() {
       request:{},
       res_code:{
         "code_name":"code",
-        "code_value":200
+        "code_value":''
       }
     }
     result_check.response= checkSqlTransObj(checkResponseTableData.value)
     result_check.response.check_sql =  checkSql.response||""
     result_check.request= checkSqlTransObj(checkQueryTableData.value)
     result_check.request.check_sql =  checkSql.request||""
-    if(checkResponseTableData.value[0].checkValue) {
-      result_check.res_code['code_value'] = checkResponseTableData.value[0].checkValue || ""
+    console.log(checkResponseTableData.value[0].checkValue,'checkResponseTableData.value[0].checkValue')
+    console.log(checkResponseTableData.value[0],'checkResponseTableData.value[0]')
+    if(checkResponseTableData.value[0]=='number') {
+      result_check.res_code.code_value= Number(checkResponseTableData.value[0].checkValue)
     }else {
-      // ElMessage({
-      //   message: '请填写code的检查值',
-      //   type: 'warning',
-      // })
-    } 
+      result_check.res_code.code_value= checkResponseTableData.value[0].checkValue
+    }
     let headerObj = {}
     applyTableData.value.forEach(el => {
       headerObj[el.name] = el.value?el.value:''
