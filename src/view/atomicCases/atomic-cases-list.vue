@@ -30,7 +30,7 @@
           <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" width="150px" />
           <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" width="150px">
             <template #default="{row}">
-              <span>{{ row.case_status==="failed"?"测试失败":row.case_status==="success"?"测试成功":"未测试" }}</span>
+              <span>{{ row.case_status==="failed"?"测试失败":row.case_status==="pass"?"测试成功":"未测试" }}</span>
             </template>
           </el-table-column>
           <!-- <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" /> -->
@@ -317,7 +317,7 @@ export default {
       // 设置状态
       let statusInfo = JSON.parse(window.sessionStorage.getItem('atomic-cases-list_status') || '{}')
       nextTick(() => {
-        if (statusInfo.currentNodeKey) {
+        if (statusInfo.currentNodeKey && statusInfo.currentNodeKey!="-1") {
           let [project_id, group_id, iface_id] = statusInfo.currentNodeKey.split('-')
           tableParams.value.iface_id = iface_id
           tableParams.value.group_id = group_id

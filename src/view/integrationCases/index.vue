@@ -41,6 +41,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 
 let currentNodeKey = ref('')
 let defaultExpandedKeys = ref([])
+let remark = ref("");
 
 let treeConfig = unref({
   data: [],
@@ -107,12 +108,15 @@ let treeConfig = unref({
       tableParams.value = {
         case_group_id: data.otherData.id,
       }
+      currentNodeKey.value = data.otherData.id
     } else if (level === 2) {
       const { id: group_id, project_id } = data.otherData
       tableParams.value = {
         case_group_id:group_id
       }
+      currentNodeKey.value = group_id
     }
+    remark.value = data.label
     getTableData()
   },
 })
@@ -144,7 +148,7 @@ let searchConfig = computed(() => ({
 }))
 
 let handleCreate = function () {
-  router.push({ path: '/integrationcases/add', query: {} })
+  router.push({ path: '/integrationcases/add', query: {remark:unref(remark),group_id:unref(currentNodeKey)} })
 }
 
 /**

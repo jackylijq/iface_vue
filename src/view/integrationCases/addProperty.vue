@@ -100,7 +100,7 @@ let updateInfo = function (key) {
     case_variable:"用例参数"
   }
   try {
-    
+    emits("update:caseInfo",{key,data:JSON.parse(dataString)})
   } catch (error) {
     ElMessage.error(`${strMap[key]}不能被格式化`)
   }

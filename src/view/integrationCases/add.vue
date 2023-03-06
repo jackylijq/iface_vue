@@ -54,13 +54,15 @@ let data = reactive({
 let locationKey = 'caseData'
 
 onMounted(() => {
-  let { id } = router.currentRoute.value.query || {}
+  let { id, remark: create_remark, group_id } = router.currentRoute.value.query || {}
   if (id) {
     locationKey = `caseData-${id}`
     data.id = id
   } else {
     // 创建时，直接显示基本信息
     baseInfoShow.value = true
+    data.remark = create_remark
+    data.case_group_id = Number(group_id)
   }
   let { case_title, case_desc, case_type, case_group_id, remark, items } =
     JSON.parse(window.localStorage.getItem(locationKey)) || {}
@@ -93,7 +95,7 @@ let handleBeforeClose = async function (done) {
 
 let handleSave = async function () {
   // 校验数据存在
-  await refBaseInfo.value.refForm.validate()
+  await refBaseInfo.value.refForm?.validate()
 
   let dataUnref = unref(data)
   let atom_case_list = dataUnref.items.map(v => v.id)

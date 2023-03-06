@@ -56,7 +56,7 @@
 
   <!-- 设置用例属性 -->
   <el-drawer modal-class="case-property" v-model="propertyShow" :with-header="false" size="70%" direction="btt">
-    <add-property :caseInfo="activeCase"></add-property>
+    <add-property :caseInfo="activeCase" @update:caseInfo="updateCaseInfo"></add-property>
   </el-drawer>
 </template>
 <script setup>
@@ -108,6 +108,10 @@ watchEffect(() => {
 let handleProperty = function (info) {
   propertyShow.value = true
   activeCase.value = info
+}
+
+let updateCaseInfo = ({ key, data }) => {
+  activeCase.value[key] = data
 }
 </script>
 <style lang="scss" scoped>

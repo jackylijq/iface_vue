@@ -88,7 +88,7 @@ let load = async function (node, resolve) {
       })),
     ]
     resolve(nodeData)
-    if (nodeData.length > 0 && !props.form.id) {
+    if (nodeData.length > 0 && (!props.form.id && !props.form.case_group_id)) {
       props.form.case_group_id = nodeData[0].id
     }
   } else if (level === 1) {
