@@ -473,7 +473,7 @@ setup() {
     val.forEach(item => {
       if(!item.children) {
         if(item.type == 'null' ){
-          obj[item.name] = null
+          obj[item.name] = ''
         }else if(item.type == 'number') {
           obj[item.name] = Number(item.value)
         }else{
@@ -506,8 +506,8 @@ setup() {
       }else if(obj[key] == null) {
         arr.push({
           name:key,
-          type:'null',
-          value:null
+          type:'string',
+          value:''
         })
       }else {
         arr.push({

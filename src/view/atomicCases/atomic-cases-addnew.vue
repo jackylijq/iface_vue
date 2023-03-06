@@ -589,7 +589,7 @@ setup() {
     val.forEach(item => {
       if(!item.children) {
         if(item.type == 'null' ){
-          obj[item.name] = null
+          obj[item.name] = ''
         }else if(item.type == 'number') {
           obj[item.name] = Number(item.value)
         }else{
@@ -614,7 +614,7 @@ setup() {
           children:backTrans(obj[key][0])
         })
 
-      }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])) {
+      }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])&& obj[key] !== null) {
         arr.push({
           name:key,
           type:'object',
@@ -623,8 +623,8 @@ setup() {
       }else if(obj[key] == null) {
         arr.push({
           name:key,
-          type:'null',
-          value:null
+          type:'string',
+          value:''
         })
       }else {
         arr.push({
