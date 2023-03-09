@@ -1,7 +1,7 @@
 <!-- 测试结果 -->
 <template>
   <div style="padding: 8px 12px">
-    <el-page-header v-if="caseId" @back="onBack">
+    <el-page-header v-if="caseId && breadShow" @back="onBack">
       <template #content>
         <el-breadcrumb style="line-height: 24px">
           <el-breadcrumb-item>
@@ -26,8 +26,10 @@ import TestResultList from './testResultList.vue'
 import TestResultSingle from './testResultSingle.vue'
 
 let caseId = ref(undefined)
+let breadShow = ref(true)
 watchEffect(() => {
   caseId.value = router.currentRoute.value.query.case_id
+  breadShow.value = router.currentRoute.value.query.scene_id!==undefined
 })
 
 let onBack = function () {
