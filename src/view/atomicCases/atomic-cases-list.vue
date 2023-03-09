@@ -288,14 +288,14 @@ export default {
           },
           emit: 'create',
         },
-        {
-          label: '删除',
-          config: {
-            type: 'default',
-            disabled: true,
-          },
-          emit: 'delete',
-        },
+        // {
+        //   label: '删除',
+        //   config: {
+        //     type: 'default',
+        //     disabled: true,
+        //   },
+        //   emit: 'delete',
+        // },
       ],
       defaultSearchValue: searchString.value,
       query(v) {
@@ -395,8 +395,7 @@ export default {
       })
       ElMessage[res.code == 200 ? 'success' : 'error'](res.message)
       if (res.code == 200) {
-        console.log('测试成功，刷新页面')
-        getTableData()
+        router.push(`/integrationcases/test?batch_id=${res.batch_id}&case_id=${scope.row.id}`)
       }
     }
 
@@ -423,19 +422,16 @@ export default {
       // 定义要删除的用例id
       let params = { test_case: [] }
       params.test_case = [scope.row.id]
-      // 进行确认提示
-      this.loading = true
-      this.$confirm('此操作将永久删除该图书, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }).then(async () => {
-        const res = await axios({
-          method: 'post',
-          url: '/iftest/case/execute/test',
+
+      ElMessageBox.confirm(`是否确认删除${scope.row.iface_name}?`, '提示', {
+        type:'warning'
+      }).then(async() => {
+        let res = await axios({
+          url: "/iftest/case/standStom/del",
+          method: "POST",
           data: {
-            ...unref(params),
-          },
+            id:scope.row.id
+          }
         })
         ElMessage[res.code == 200 ? 'success' : 'error'](res.message)
         if (res.code == 200) {

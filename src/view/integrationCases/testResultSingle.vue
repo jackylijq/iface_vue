@@ -49,7 +49,7 @@ let getFormData = async function () {
     data: params,
   })
 
-  let info = res.data.datasList[0]
+  let info = res.data.datasList[0] || {}
   form.value = {
     ...info,
     // test_result:info.test_result==="pass"?"成功":"失败",
