@@ -45,8 +45,9 @@
             <div class="headerTitle">请求参数</div>
             <el-table :data="queryTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
               <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
-              <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
+              <el-table-column :show-overflow-tooltip="true" prop="type" label="参数类型"/>
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
+              <el-table-column :show-overflow-tooltip="true" prop="description" label="字段含义"/>
               <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值">
                 <template v-slot="scope">
                   <el-input v-model="scope.row.value" size="small"></el-input>
@@ -66,7 +67,7 @@
               <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
               <el-table-column :show-overflow-tooltip="true" prop="value" label="默认值"/>
-              <el-table-column :show-overflow-tooltip="true" prop="" label="备注"/>
+              <el-table-column :show-overflow-tooltip="true" prop="description" label="字段含义"/>
               <el-table-column :show-overflow-tooltip="true" prop="value" label="是否参数化">
                 <template v-slot="scope">
                   <el-checkbox v-model="scope.row.checked" @change="responseCheck()">{{scope.row.checked?'是':'否'}}</el-checkbox>
@@ -167,8 +168,9 @@
         </div>
         <el-table :data="checkResponseTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" width="auto"/>
-          <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="type" label="类型" width="auto"/>
+          <el-table-column :show-overflow-tooltip="true" prop="description" label="字段含义"/>
+          <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="checked" label="是否检查" width="auto">
             <template v-slot="scope">
               <el-checkbox v-if="scope.row.name!=='code'" v-model="scope.row.isChecked" @change="responseSqlCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
@@ -211,8 +213,9 @@
         </div>
         <el-table :data="checkQueryTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
-          <el-table-column :show-overflow-tooltip="true" prop="type" label="类型"/>
+          <el-table-column :show-overflow-tooltip="true" prop="type" label="参数类型"/>
           <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
+          <el-table-column :show-overflow-tooltip="true" prop="description" label="字段含义" width="auto"/>
           <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值">
           </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="value" label="是否检查">
@@ -502,19 +505,15 @@ setup() {
   //全景-高级切换
   const handleClick = (tab, event) => {
       data.activeName = tab.index
-      // if(isFirstTrans) {
-      //   requestJson.value = firstTrans(queryTableData.value)
-      //   console.log(requestJson.value,'requestJson')
-      // }
       if(data.activeName == '1') {
         requestJson.value = firstTrans(queryTableData.value)
         responseJson.value = firstTrans(backTableData.value)
         getCaseVariable(queryTableData.value)
         getResultVariable(backTableData.value)
-        // isFirstTrans = false
-      }else if(data.activeName == '0') {
-        queryTableData.value = backTrans(requestJson.value)
-        backTableData.value = backTrans(responseJson.value)
+        isFirstTrans = false
+      }else if(data.activeName == '0' &&!isFirstTrans) {
+        queryTableData.value = backTrans(requestJson.value,'query')
+        backTableData.value = backTrans(responseJson.value,'response')
         addBaseInfo(queryTableData.value,'query')
         addBaseInfo(backTableData.value,'response')
         for (var key in case_variable.value) {
@@ -561,8 +560,11 @@ setup() {
         val.forEach(item => {
         let sameItem = queryBaseInfo.value.filter(el => el.name ==item.name)
         if(sameItem.length>0) {
-          // item.type = sameItem[0].type
+          item.type = sameItem[0].type
           item.required = sameItem[0].required
+          item.description = sameItem[0].description
+        }else {
+          item.type = item.valueType
         }
         if(item.children) {
           addBaseInfo(item.children,'query')
@@ -572,8 +574,11 @@ setup() {
       val.forEach(item => {
         let sameItem = responseBaseInfo.value.filter(el => el.name ==item.name)
         if(sameItem.length>0) {
-          // item.type = sameItem[0].type
+          item.type = sameItem[0].type
           item.required = sameItem[0].required
+          item.description = sameItem[0].description
+        }else {
+          item.type = item.valueType
         }
         if(item.children) {
           addBaseInfo(item.children,'response')
@@ -587,50 +592,77 @@ setup() {
   const firstTrans = function (val) {
     let obj = {}
     val.forEach(item => {
-      if(!item.children) {
-        if(item.type == 'null' ){
+      if(isFirstTrans) {
+         item.valueType = item.type
+      }
+      if(!item.children || item.children.length==0) {
+        if(item.valueType == 'null' ){
           obj[item.name] = ''
-        }else if(item.type == 'number') {
+        }else if(item.valueType == 'number') {
+         if(item.value == undefined) {
+          obj[item.name] = null
+         }else {
+          console.log(item,'num')
           obj[item.name] = Number(item.value)
+         }
+        }else if(item.valueType == 'array' && (item.value==null || item.value==undefined || !item.value)) {
+          console.log(item,'item')
+          obj[item.name] = []
         }else{
           obj[item.name] = item.value?item.value:''
         }
-      }else if(item.type == 'array' && item.children) {
+      }else if(item.valueType == 'array' && item.children && item.children.length>0) {
         obj[item.name] = [firstTrans(item.children)]
-      }else if(item.type == 'object' && item.children){
+      }else if(item.valueType == 'object' && item.children){
         obj[item.name] = firstTrans(item.children)
       }
     })
     return obj
   }
   //高级转全景
-  const backTrans = function (obj) {
+  const backTrans = function (obj,type) {
     let arr = []
     for (let key in obj) {
       if(Array.isArray(obj[key])) {
         arr.push({
           name:key,
-          type:'array',
-          children:backTrans(obj[key][0])
+          valueType:'array',
+          children:backTrans(obj[key][0],type)
         })
 
       }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])&& obj[key] !== null) {
         arr.push({
           name:key,
-          type:'object',
-          children:backTrans(obj[key])
+          valueType:'object',
+          children:backTrans(obj[key],'type')
         })
       }else if(obj[key] == null) {
+        let baseInfo = type=='query'?queryBaseInfo.value:responseBaseInfo.value
+        let sameItem = baseInfo.filter(el => el.name == key)
+        if(sameItem.length>0 && sameItem[0].type == 'array') {
+          arr.push({
+            name:key,
+            valueType:'array',
+            value:''
+          })
+        }else {
+          arr.push({
+            name:key,
+            valueType:'string',
+            value:""
+          })
+        }
+      }else if (typeof obj[key] == 'number' && obj[key] ==0) {
         arr.push({
           name:key,
-          type:'string',
-          value:''
+          value:0,
+          valueType:typeof obj[key]
         })
       }else {
         arr.push({
           name:key,
-          value:obj[key],
-          type:typeof obj[key]
+          value:obj[key]||'',
+          valueType:typeof obj[key]
         })
       }
     }
@@ -759,6 +791,7 @@ setup() {
         if(req_body.indexOf('ObjectId') !== -1) {
           let req_bodyJson = req_body.replace(RegExp("[(]", "g"),'').replace(RegExp("[)]", "g"),'').replace(RegExp("ObjectId", "g"),'')
           queryTableData.value = JSON.parse('['+req_bodyJson+']')
+          queryTableData.value.forEach(item=>item.description = item.desc)
         }else {
           let queryJson = JSON.parse(req_body.replace(/[\r|\n|\t]/g,""))
           if(queryJson.items) {
@@ -795,13 +828,16 @@ setup() {
         queryBaseInfo.value.push({
           name:item.name,
           type:item.type,
-          required:item.required
+          required:item.required,
+          description:item.description
+          
         })
       }else if(type == 'response') {
         responseBaseInfo.value.push({
           name:item.name,
           type:item.type,
-          required:item.required
+          required:item.required,
+          description:item.description
         })
       }
       if(item.children) {
