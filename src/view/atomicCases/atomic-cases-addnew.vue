@@ -92,7 +92,7 @@
               show-icon>
             </el-alert>
             <div style='font-size:12px;margin: 15px 0 ;'><span style="color: red">*</span >请求参数</div>
-              <JsonEditorVue v-model="requestJson" @blur="validate" currentMode="code"/>
+              <JsonEditorVue v-model="requestJson" @blur="validate" currentMode="text"/>
               <!-- <vue-json-editor
                 v-model="requestJson"
                 :showBtns="false"
@@ -102,7 +102,7 @@
                 @has-error="onError"
               /> -->
             <div style='font-size:12px;margin: 15px 0'><span style="color: red">*</span>响应参数</div>
-            <JsonEditorVue v-model="responseJson" @blur="validate" currentMode="code"/>
+            <JsonEditorVue v-model="responseJson" @blur="validate" currentMode="text"/>
 
             <!-- <vue-json-editor
                 v-model="responseJson"
@@ -705,7 +705,7 @@ setup() {
         if(item.children && item.type == 'object') {
           childrenResUrl(item.children,url)
         }else if(item.children && item.type == 'array') {
-          childrenResUrl(item.children,url+'[0]')
+          childrenResUrl(item.children,url)
         }
         
     })
