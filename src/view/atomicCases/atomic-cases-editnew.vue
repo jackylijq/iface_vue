@@ -490,14 +490,15 @@ setup() {
          if(item.value == undefined) {
           obj[item.name] = null
          }else {
-          console.log(item,'num')
           obj[item.name] = Number(item.value)
          }
         }else if(item.valueType == 'array' && (item.value==null || item.value==undefined || !item.value)) {
-          console.log(item,'item')
           obj[item.name] = []
         }else{
           obj[item.name] = item.value?item.value:''
+        }
+        if(typeof item.value === 'number'&&item.value == 0) {
+          obj[item.name] = 0
         }
       }else if(item.valueType == 'array' && item.children && item.children.length>0) {
         obj[item.name] = [firstTrans(item.children)]
@@ -509,8 +510,6 @@ setup() {
   }
   //高级转全景
   const backTrans = function (obj,type) {
-    console.log(obj,'obj')
-    console.log(111111)
     let arr = []
     for (let key in obj) {
       if(Array.isArray(obj[key])) {
@@ -1035,8 +1034,8 @@ setup() {
           i.required = sameItem.required
         }
       })
-      queryTableData.value = backTrans(tableParams.request_param)
-      backTableData.value = backTrans(tableParams.response)
+      queryTableData.value = backTrans(tableParams.request_param,'query')
+      backTableData.value = backTrans(tableParams.response,'resopnse')
       for (var key in tableParams.case_variable) {
         addCaseVariable(queryTableData.value,key)
       }
