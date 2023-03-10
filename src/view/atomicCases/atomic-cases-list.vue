@@ -88,6 +88,7 @@
               row-key="name"
             >
               <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" />
+            <el-table-column :show-overflow-tooltip="true" prop="type" label="参数类型" />
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
               <el-table-column :show-overflow-tooltip="true" prop="t3" label="示例" />
               <el-table-column :show-overflow-tooltip="true" prop="description" label="备注" />
@@ -486,6 +487,7 @@ export default {
             .replace(RegExp('[)]', 'g'), '')
             .replace(RegExp('ObjectId', 'g'), '')
           queryTableData.value = JSON.parse('[' + req_bodyJson + ']')
+          queryTableData.value.forEach(item=>item.description = item.desc)
         } else {
           let queryJson = JSON.parse(req_body.replace(/[\r|\n|\t]/g, ''))
           if (queryJson.items) {
