@@ -16,7 +16,7 @@
           <el-table-column :show-overflow-tooltip="true" prop="atom_case_num" label="原子用例数量" min-width="150px" />
           <el-table-column :show-overflow-tooltip="true" label="用例状态" min-width="120px">
             <template #default="{ row, column, $index }">
-              <span :class="[row.case_status==='pass'?'':'--fail']">{{ row.case_status_text }}</span>
+              <span :class="[row.case_status==='pass'?'--pass':'--fail']">{{ row.case_status_text }}</span>
             </template>
           </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="exe_result" label="执行结果" min-width="100px" />
