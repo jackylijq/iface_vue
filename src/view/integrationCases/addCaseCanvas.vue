@@ -117,10 +117,10 @@ let updateCaseInfo = ({ key, data }) => {
 <style lang="scss" scoped>
 .add-case-canvas {
   display: flex;
-
-  width: 1000%;
-  height: 1000%;
-
+  flex-wrap: wrap;
+  align-content: flex-start;
+  width: 100%;
+  height: 100%;
   padding: 60px;
 
   i {
@@ -142,6 +142,7 @@ let updateCaseInfo = ({ key, data }) => {
   }
 
   &-group {
+
     &-item {
       position: relative;
       display: flex;

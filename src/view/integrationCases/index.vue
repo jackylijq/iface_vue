@@ -14,7 +14,11 @@
           <el-table-column :show-overflow-tooltip="true" prop="case_title" label="集成用例名称" min-width="150px" />
           <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="集成用例描述" min-width="250px" />
           <el-table-column :show-overflow-tooltip="true" prop="atom_case_num" label="原子用例数量" min-width="150px" />
-          <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例状态" min-width="100px" />
+          <el-table-column :show-overflow-tooltip="true" label="用例状态" min-width="120px">
+            <template #default="{ row, column, $index }">
+              <span :class="[row.case_status==='pass'?'':'--fail']">{{ row.case_status_text }}</span>
+            </template>
+          </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="exe_result" label="执行结果" min-width="100px" />
           <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="更新人员" min-width="100px" />
           <!-- <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" min-width="150px" />
@@ -41,7 +45,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 
 let currentNodeKey = ref('')
 let defaultExpandedKeys = ref([])
-let remark = ref("");
+let remark = ref('')
 
 let treeConfig = unref({
   data: [],
@@ -112,7 +116,7 @@ let treeConfig = unref({
     } else if (level === 2) {
       const { id: group_id, project_id } = data.otherData
       tableParams.value = {
-        case_group_id:group_id
+        case_group_id: group_id,
       }
       currentNodeKey.value = group_id
     }
@@ -148,7 +152,7 @@ let searchConfig = computed(() => ({
 }))
 
 let handleCreate = function () {
-  router.push({ path: '/integrationcases/add', query: {remark:unref(remark),group_id:unref(currentNodeKey)} })
+  router.push({ path: '/integrationcases/add', query: { remark: unref(remark), group_id: unref(currentNodeKey) } })
 }
 
 /**
@@ -194,8 +198,8 @@ let handleTest = async function ({ row }) {
     router.push({ path: '/integrationcases/test', query: { scene_id: row.id, batch_id: res.batch_id } })
   } else {
     ElMessage({
-      type: "error",
-      message:"测试失败，请重试"
+      type: 'error',
+      message: '测试失败，请重试',
     })
   }
 }
@@ -224,7 +228,10 @@ let getTableData = async function () {
     data,
   })
 
-  tableData.value = res.data.datasList
+  tableData.value = res.data.datasList.map(v => ({
+    ...v,
+    case_status_text: v.case_status === 'pass' ? '测试成功' : '测试失败',
+  }))
   pageConfig.total = res.data.total
 }
 
