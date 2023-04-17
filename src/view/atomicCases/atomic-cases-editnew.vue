@@ -512,13 +512,19 @@ setup() {
   const backTrans = function (obj,type) {
     let arr = []
     for (let key in obj) {
-      if(Array.isArray(obj[key])) {
+      if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object') {
         arr.push({
           name:key,
           valueType:'array',
           children:backTrans(obj[key][0],type)
         })
 
+      }else if (Array.isArray(obj[key])&&typeof obj[key][0] !== 'object') {
+        arr.push({
+          name:key,
+          valueType:'array',
+          value:obj[key]
+        })
       }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])&& obj[key] !== null) {
         arr.push({
           name:key,
