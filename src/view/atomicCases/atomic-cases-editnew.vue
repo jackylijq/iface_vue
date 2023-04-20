@@ -42,7 +42,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="6">
-              <el-form-item label="等待时间" prop="case">
+              <el-form-item label="等待时间" prop="wait_time">
                 <el-input v-model="formData.wait_time" style='width:calc(100% - 20px)'/>
                 <span class="tip">
                   <el-popover
@@ -69,7 +69,7 @@
           </el-row>
         </el-form>
         <div class="applyTitle">Headers:</div>
-        <el-table :data="applyTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+        <el-table :data="applyTableData" :default-expand-all="true" stripe class="headerTable" row-key="index" :tree-props="{children: 'children'}">
           <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称">
             <template v-slot="scope">
               <el-input v-model="scope.row.name" size="small"></el-input>
@@ -301,7 +301,7 @@ setup() {
     case_title: '',
     case_desc: '',
     case_type: '正常',
-    wait_time:0,
+    wait_time:'0',
     version:'',
     case_status: '',
     header: '',
@@ -335,6 +335,14 @@ setup() {
       if(!formData.value.case_title) {
         ElMessage({
           message: '请输入用例名称',
+          type: 'warning',
+        })
+        return false
+      }
+      let reg1 =  new RegExp(/^[0-9]\d*$/)
+      if(formData.value.wait_time&&!reg1.test(formData.value.wait_time)) {
+        ElMessage({
+          message: '等待时间请输入大于或等于0的整数！',
           type: 'warning',
         })
         return false
@@ -854,6 +862,7 @@ setup() {
   }
   const rules = reactive({
     case_title: [{ required: true, message: '请输入用例名称', trigger: 'change' }],
+    wait_time:[{pattern:/^[0-9]\d*$/, message: '请输入大于或等于0的整数！', trigger: 'change'}],
     header: [
       // { required: true, message: '请输入请求头', trigger: 'change' },
       {
@@ -938,6 +947,7 @@ setup() {
       case_desc:formData.value.case_desc,
       case_type:formData.value.case_type,
       version:formData.value.version,
+      wait_time:formData.value.wait_time,
       header:headerObj,
       request_param:requestJson.value,
       response:responseJson.value,
@@ -1070,6 +1080,7 @@ setup() {
       formData.value.case_desc = tableParams.case_desc
       formData.value.version = tableParams.version
       formData.value.case_type = tableParams.case_type
+      formData.value.wait_time = tableParams.wait_time
       applyTableData.value = []
       for(var key in tableParams.header) {
         applyTableData.value.push({
