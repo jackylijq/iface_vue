@@ -43,7 +43,7 @@
             </el-col>
             <el-col :span="6">
               <el-form-item label="等待时间" prop="wait_time">
-                <el-input v-model="formData.wait_time" style='width:calc(100% - 20px)'/>
+                <el-input-number v-model="formData.wait_time"  controls-position="right" :min="0" style='width:calc(100% - 20px)'/>
                 <span class="tip">
                   <el-popover
                   placement="right"
@@ -85,7 +85,7 @@
           <el-table-column :show-overflow-tooltip="true" prop="" label="">
             <template v-slot="scope">
               <i class="el-icon-circle-plus-outline" style="font-size:20px;margin:0 18px;cursor: pointer;" @click="addHeaderInfo(scope.row)"></i>
-              <i class="el-icon-delete" style="font-size:20px;cursor: pointer;" @click="deleteHeaderInfo(scope.row)"></i>
+              <i class="el-icon-delete" style="font-size:20px;cursor: pointer;" @click="deleteHeaderInfo(scope.row)" v-show="scope.row.name!=='Content-Type'&&scope.row.name!=='username'&&scope.row.name!=='password'"></i>
             </template>
           </el-table-column>
         </el-table>
@@ -938,6 +938,8 @@ setup() {
     applyTableData.value.forEach(el => {
       if(el.name && el.value && el.name !== '' && el.value !== '') {
         headerObj[el.name] = el.value
+      }else if (el.name == 'Content-Type' || el.name == 'username' || el.name == 'password') {
+        headerObj[el.name] = el.value || ''
       }
     })
     let param = {
