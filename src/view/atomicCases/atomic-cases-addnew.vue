@@ -667,6 +667,8 @@ setup() {
          }
         }else if(item.valueType == 'array' && (item.value==null || item.value==undefined || !item.value)) {
           obj[item.name] = []
+        }else if(item.valueType == 'boolean'){
+          obj[item.name] = item.value
         }else{
           obj[item.name] = item.value?item.value:''
         }
@@ -724,6 +726,12 @@ setup() {
         arr.push({
           name:key,
           value:0,
+          valueType:typeof obj[key]
+        })
+      }else if (typeof obj[key] == 'boolean') {
+        arr.push({
+          name:key,
+          value:obj[key],
           valueType:typeof obj[key]
         })
       }else {
