@@ -89,8 +89,8 @@ let getTableData = async function () {
     data: {
       batch_id: router.currentRoute.value.query.batch_id,
       scene_id: router.currentRoute.value.query.scene_id,
-      curPage: 1,
-      pageSize: 10,
+      curPage: pageConfig.curPage,
+      pageSize: pageConfig.pageSize,
     },
   })
   tabbleData.value = res.data.datasList.map(v => ({
