@@ -10,30 +10,82 @@
       <div class="stepOne" v-show="step == '1'">
         <div class="headerTitle">基本信息</div>
         <el-form ref="ruleFormRef" :model="formData" :rules="rules" label-width="120px" class="baseForm">
-          <el-form-item label="用例名称" prop="case_title">
-              <el-input v-model="formData.case_title" />
-          </el-form-item>
-          <el-form-item required label="用例描述" prop="case_desc">
-              <el-input v-model="formData.case_desc" :rows="2" type="textarea" />
-          </el-form-item>
-          <el-form-item label="接口版本" prop="case">
-            <el-input v-model="formData.version" />
-          </el-form-item>
-          <el-form-item label="用例类型" prop="case_type">
-            <el-select v-model="formData.case_type" placeholder="请选择">
-              <el-option key="正常" label="正常" value="正常"></el-option>
-              <el-option key="异常" label="异常" value="异常"></el-option>
-            </el-select>
-          </el-form-item>
+          <el-row>
+            <el-col :span="9">
+              <el-form-item label="接口名称" prop="name">
+                <el-input v-model="formData.name" readonly/>
+              </el-form-item>
+            </el-col>
+            <el-col :span="9">
+              <el-form-item label="接口地址" prop="address">
+                <el-input v-model="formData.address" readonly/>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6">
+              <el-form-item label="接口版本" prop="case">
+                <el-input v-model="formData.version" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="9">
+              <el-form-item label="用例名称" prop="case_title">
+                <el-input v-model="formData.case_title" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="9">
+              <el-form-item label="用例类型" prop="case_type">
+                <el-select v-model="formData.case_type" placeholder="请选择" width="100%">
+                  <el-option key="正常" label="正常" value="正常"></el-option>
+                  <el-option key="异常" label="异常" value="异常"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6">
+              <el-form-item label="等待时间" prop="wait_time">
+                <el-input-number v-model="formData.wait_time"  controls-position="right" :min="0" style='width:calc(100% - 20px)'/>
+                <span class="tip">
+                  <el-popover
+                  placement="right"
+                  title="Note"
+                  :width="220"
+                  trigger="hover"
+                  content="内容：执行当前用例的等待时间，单位为秒"
+                  >
+                    <template #reference>
+                      <i class="el-icon-question"></i>
+                    </template>
+                  </el-popover>
+                </span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="18">
+              <el-form-item label="用例描述" prop="case_desc">
+                <el-input v-model="formData.case_desc" :rows="2" type="textarea" />
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-form>
         <div class="applyTitle">Headers:</div>
-        <el-table :data="applyTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
-          <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
+        <el-table :data="applyTableData" :default-expand-all="true" stripe class="headerTable" row-key="index" :tree-props="{children: 'children'}">
+          <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称">
+            <template v-slot="scope">
+              <el-input v-model="scope.row.name" size="small"></el-input>
+            </template>
+          </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
           <el-table-column :show-overflow-tooltip="true" prop="desc" label="备注" />
           <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值">
             <template v-slot="scope">
               <el-input v-model="scope.row.value" size="small"></el-input>
+            </template>
+          </el-table-column>
+          <el-table-column :show-overflow-tooltip="true" prop="" label="">
+            <template v-slot="scope">
+              <i class="el-icon-circle-plus-outline" style="font-size:20px;margin:0 18px;cursor: pointer;" @click="addHeaderInfo(scope.row)"></i>
+              <i class="el-icon-delete" style="font-size:20px;cursor: pointer;" @click="deleteHeaderInfo(scope.row)" v-show="scope.row.name!=='Content-Type'&&scope.row.name!=='username'&&scope.row.name!=='password'"></i>
             </template>
           </el-table-column>
         </el-table>
@@ -222,7 +274,7 @@ import { ref, reactive, unref,onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import vueRouter from '@/router'
 import axios from '@/lin/plugin/axios'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import emitter from 'lin/util/emitter'
 import JsonEditorVue from 'json-editor-vue3'
 import store from '@/store';
@@ -249,6 +301,7 @@ setup() {
     case_title: '',
     case_desc: '',
     case_type: '正常',
+    wait_time:'0',
     version:'',
     case_status: '',
     header: '',
@@ -285,13 +338,22 @@ setup() {
           type: 'warning',
         })
         return false
-      }else if(!formData.value.case_desc) {
+      }
+      let reg1 =  new RegExp(/^[0-9]\d*$/)
+      if(formData.value.wait_time&&!reg1.test(formData.value.wait_time)) {
         ElMessage({
-          message: '请输入用例描述',
+          message: '等待时间请输入大于或等于0的整数！',
           type: 'warning',
         })
         return false
       }
+      // else if(!formData.value.case_desc) {
+      //   ElMessage({
+      //     message: '请输入用例描述',
+      //     type: 'warning',
+      //   })
+      //   return false
+      // }
       addBaseInfo(queryTableData.value,'query')
       addBaseInfo(backTableData.value,'response')
       if(from == 3) {
@@ -494,6 +556,8 @@ setup() {
          }
         }else if(item.valueType == 'array' && (item.value==null || item.value==undefined || !item.value)) {
           obj[item.name] = []
+        }else if(item.valueType == 'boolean'){
+          obj[item.name] = item.value
         }else{
           obj[item.name] = item.value?item.value:''
         }
@@ -512,13 +576,19 @@ setup() {
   const backTrans = function (obj,type) {
     let arr = []
     for (let key in obj) {
-      if(Array.isArray(obj[key])) {
+      if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object') {
         arr.push({
           name:key,
           valueType:'array',
           children:backTrans(obj[key][0],type)
         })
 
+      }else if (Array.isArray(obj[key])&&typeof obj[key][0] !== 'object') {
+        arr.push({
+          name:key,
+          valueType:'array',
+          value:obj[key]
+        })
       }else if(typeof obj[key] == 'object' && !Array.isArray(obj[key])&& obj[key] !== null) {
         arr.push({
           name:key,
@@ -545,6 +615,12 @@ setup() {
         arr.push({
           name:key,
           value:0,
+          valueType:typeof obj[key]
+        })
+      }else if (typeof obj[key] == 'boolean') {
+        arr.push({
+          name:key,
+          value:obj[key],
           valueType:typeof obj[key]
         })
       }else {
@@ -665,8 +741,8 @@ setup() {
         data,
       })
       const { req_headers, req_body, res_body, iface_name,request_url,request_method } = res.data
-      formData.name = iface_name
-      formData.address = request_url
+      formData.value.name = iface_name
+      formData.value.address= request_url
       formData.method = request_method
       let req_headersJson = req_headers.replace(RegExp("[(]", "g"),'').replace(RegExp("[)]", "g"),'').replace(RegExp("ObjectId", "g"),'')
       applyTableBaseData = JSON.parse('['+req_headersJson+']')
@@ -794,8 +870,7 @@ setup() {
   }
   const rules = reactive({
     case_title: [{ required: true, message: '请输入用例名称', trigger: 'change' }],
-    case_desc: [{required: true, message: '请输入用例描述', trigger: 'change' }],
-    case_status: [{message: '请输入用例状态', trigger: 'change' }],
+    wait_time:[{pattern:/^[0-9]\d*$/, message: '请输入大于或等于0的整数！', trigger: 'change'}],
     header: [
       // { required: true, message: '请输入请求头', trigger: 'change' },
       {
@@ -869,7 +944,11 @@ setup() {
     }
     let headerObj = {}
     applyTableData.value.forEach(el => {
-      headerObj[el.name] = el.value?el.value:''
+      if(el.name && el.value && el.name !== '' && el.value !== '') {
+        headerObj[el.name] = el.value
+      }else if (el.name == 'Content-Type' || el.name == 'username' || el.name == 'password') {
+        headerObj[el.name] = el.value || ''
+      }
     })
     let param = {
       iface_id:tableParams.iface_id,
@@ -878,6 +957,7 @@ setup() {
       case_desc:formData.value.case_desc,
       case_type:formData.value.case_type,
       version:formData.value.version,
+      wait_time:formData.value.wait_time,
       header:headerObj,
       request_param:requestJson.value,
       response:responseJson.value,
@@ -1010,6 +1090,7 @@ setup() {
       formData.value.case_desc = tableParams.case_desc
       formData.value.version = tableParams.version
       formData.value.case_type = tableParams.case_type
+      formData.value.wait_time = tableParams.wait_time
       applyTableData.value = []
       for(var key in tableParams.header) {
         applyTableData.value.push({
@@ -1088,6 +1169,23 @@ setup() {
       }
     })
   }
+  const addHeaderInfo = function (data) {
+    let i = applyTableData.value.findIndex(item => item.name == data.name)
+    let obj = {
+      name:'',
+      value:''
+    }
+    applyTableData.value.splice(i+1,0,obj)
+  }
+  const deleteHeaderInfo = function (data) {
+    let i = applyTableData.value.findIndex(item => item.name == data.name)
+    ElMessageBox.confirm(`是否确认删除该参数?`, '提示', {
+        type:'warning'
+      }).then(async() => {
+        applyTableData.value.splice(i,1)
+    })
+
+  }
   onMounted(()=>{
     getEditData()
     getIfaceDetail(tableParams.iface_id)
@@ -1143,7 +1241,9 @@ setup() {
     itemSqlDisabled,
     checkSqlList,
     checkedList,
-    headerBaseInfo
+    headerBaseInfo,
+    addHeaderInfo,
+    deleteHeaderInfo
   }
   
 },
@@ -1155,6 +1255,9 @@ setup() {
   min-width: 700px;
   padding: 20px;
   padding-bottom: 30px;
+  .el-form .el-select{
+    width: 100%;
+  }
   .steps{
     padding-left:200px
   }
@@ -1175,7 +1278,7 @@ setup() {
     }
   }
   .baseForm{
-    width: 30%;
+    width: 70%;
 
   }
   .applyTitle {
