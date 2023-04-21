@@ -43,7 +43,7 @@
             </el-col>
             <el-col :span="6">
               <el-form-item label="等待时间" prop="wait_time">
-                <el-input-number v-model="formData.wait_time"  controls-position="right" :min="0" style='width:calc(100% - 20px)'/>
+                <el-input-number v-model="formData.wait_time"  controls-position="right" :min="0" style='width:calc(100% - 20px);height:32px'/>
                 <span class="tip">
                   <el-popover
                   placement="right"
