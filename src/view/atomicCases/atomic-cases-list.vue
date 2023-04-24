@@ -30,7 +30,7 @@
           <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" width="150px" />
           <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" width="150px">
             <template #default="{row}">
-              <span>{{ row.case_status==="failed"?"测试失败":row.case_status==="pass"?"测试成功":"未测试" }}</span>
+              <span :class="{'--pass':row.case_status==='pass','--fail':row.case_status==='failed'}">{{ row.case_status==="failed"?"测试失败":row.case_status==="pass"?"测试成功":"未测试" }}</span>
             </template>
           </el-table-column>
           <!-- <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" /> -->
@@ -38,7 +38,7 @@
           <el-table-column prop="address" label="操作" width="300">
             <template #default="scope">
               <el-button type="primary" text size="small" @click.stop="testClick(scope)">测试</el-button>
-              <el-button size="small" @click.stop="copyClick(scope)">复制</el-button>
+              <!-- <el-button size="small" @click.stop="copyClick(scope)">复制</el-button> -->
               <el-button size="small" @click.stop="editClick(scope)">编辑</el-button>
               <el-button type="danger" size="small" @click.stop="delClick(scope)">删除</el-button>
             </template>

@@ -1,12 +1,16 @@
 <template>
   <div>
     <el-divider style="margin: 8px 0" />
-
-    <el-descriptions class="border" direction="horizontal" :column="1">
+    <el-descriptions class="border" direction="horizontal" :column="2">
       <el-descriptions-item label="用例名称">{{ form.case_title }}</el-descriptions-item>
+      <el-descriptions-item label="编号">{{ form.id }}</el-descriptions-item>
       <el-descriptions-item label="接口地址">{{ form.request_url }}</el-descriptions-item>
       <el-descriptions-item label="请求方式">{{ form.request_method }}</el-descriptions-item>
-      <el-descriptions-item label="执行结果"> <span :class="form.test_result">{{form.test_resultString}}</span> <el-button v-if="!form.test_result" type="primary" @click="getFormData">刷新</el-button> </el-descriptions-item>
+      <el-descriptions-item label="执行结果">
+        <span :class="form.test_result">{{ form.test_resultString }}</span>
+        <el-button v-if="!form.test_result" type="primary" @click="getFormData">刷新</el-button>
+      </el-descriptions-item>
+      <el-descriptions-item label="错误信息" v-if="form.test_result==='failed'">{{ form.message }}</el-descriptions-item>
     </el-descriptions>
 
     <el-divider style="margin: 8px 0" />
@@ -38,7 +42,7 @@ let getFormData = async function () {
     case_id: router.currentRoute.value.query.case_id,
     batch_id: router.currentRoute.value.query.batch_id,
     scene_id: router.currentRoute.value.query.scene_id,
-    id:router.currentRoute.value.query.id,
+    id: router.currentRoute.value.query.id,
     curPage: 1,
     pageSize: 1,
   }
@@ -52,7 +56,7 @@ let getFormData = async function () {
   let info = res.data.datasList[0] || {}
   form.value = {
     ...info,
-    test_resultString:info.test_result==="pass"?"测试成功":info.test_result==="failed"?"测试失败":"",
+    test_resultString: info.test_result === 'pass' ? '测试成功' : info.test_result === 'failed' ? '测试失败' : '',
     request_header: JSON.stringify(info.request_header),
     request_param: JSON.stringify(info.request_param, null, 2),
     response: JSON.stringify(info.response, null, 2),
@@ -64,11 +68,10 @@ onBeforeMount(() => {
 })
 </script>
 <style lang="scss" scoped>
-.pass{
-  color:green
-
+.pass {
+  color: green;
 }
-.failed{
+.failed {
   color: red;
 }
 </style>
