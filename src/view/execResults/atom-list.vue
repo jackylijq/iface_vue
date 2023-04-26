@@ -1,19 +1,32 @@
 <template>
   <div class="searchForm">
     <el-descriptions :column="2" :size="size" class="descriptBox" direction="horizontal" :style="blockMargin">
-      <el-descriptions-item label="用例名称" :span="1">{{ caseData.case_title }}</el-descriptions-item>
+      <el-descriptions-item label="集成用例名称" :span="1">{{ caseData.case_title }}</el-descriptions-item>
+      <el-descriptions-item label="集成用例ID" :span="1">{{ caseData.id }}</el-descriptions-item>
       <el-descriptions-item label="执行状态" :span="2">
-        <span class="stateSpan" v-for="(item, index) in stateList" :key="index"
+        <span
+          class="stateSpan"
+          v-for="(item, index) in stateList"
+          :key="index"
+          :class="{ '--pass': item.label == '成功', '--fail': item.label == '失败' }"
           >{{ item.label }}：{{ item.value }}</span
         >
       </el-descriptions-item>
-      <el-descriptions-item label="执行结果" :span="1">{{
-        caseData.un_run_num && caseData.un_run_num > 0
-          ? '未完成'
-          : caseData.failed_num && caseData.failed_num > 0
-          ? '失败'
-          : '成功'
-      }}</el-descriptions-item>
+      <el-descriptions-item label="执行结果" :span="1">
+        <span
+          :class="{
+            '--pass': caseData.un_run_num === 0 && caseData.failed_num === 0,
+            '--fail': caseData.failed_num && caseData.failed_num > 0,
+          }"
+          >{{
+            caseData.un_run_num && caseData.un_run_num > 0
+              ? '未完成'
+              : caseData.failed_num && caseData.failed_num > 0
+              ? '失败'
+              : '成功'
+          }}</span
+        >
+      </el-descriptions-item>
     </el-descriptions>
   </div>
   <div class="searchInput">
@@ -29,6 +42,7 @@
   <div>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column fixed type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
+      <el-table-column fixed prop="id" label="用例编号" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column fixed prop="iface_name" label="用例标题" :show-overflow-tooltip="true"> </el-table-column>
       <!-- <el-table-column
           :show-overflow-tooltip="true"
@@ -44,9 +58,21 @@
           </div>
         </template>
       </el-table-column>
+      <el-table-column prop="case_variable" label="参数变量" :show-overflow-tooltip="true">
+        <template #default="scope">
+          <div>{{ scope.row.case_variable }}</div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="message" label="执行信息" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column label="环境" > 
+        <template #default>
+          {{ planData.exe_env }}
+        </template>
+
+      </el-table-column>
       <el-table-column prop="edit_uid" label="执行人员" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column prop="exe_time" label="执行时间"> </el-table-column>
-      <el-table-column prop="message" label="执行信息"> </el-table-column>
+      
       <el-table-column fixed="right" label="操作" width="120">
         <template #default="scope">
           <el-button @click="openRow(scope)" type="text" size="small"> 查看详情 </el-button>
@@ -67,7 +93,7 @@ import axios from '@/lin/plugin/axios'
 import { cloneDeep, throttle, debounce } from 'lodash'
 
 export default {
-  props: ['caseData'],
+  props: ['caseData','planData'],
   setup(props, context) {
     const tableData = ref([])
     const select = ref('iface_name')
@@ -77,7 +103,7 @@ export default {
       curPage: 1,
       pageSize: 10,
       scene_id: props.caseData.scene_id,
-      batch_id: props.caseData.batch_id
+      batch_id: props.caseData.batch_id,
     })
     const totalConfig = ref(0)
     const tableParams = ref({})
@@ -130,7 +156,7 @@ export default {
         curPage,
         pageSize,
         scene_id: props.caseData.scene_id,
-        batch_id: props.caseData.batch_id
+        batch_id: props.caseData.batch_id,
       }
       totalConfig.value = total
     }

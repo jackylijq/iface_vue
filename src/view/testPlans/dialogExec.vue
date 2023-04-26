@@ -1,7 +1,7 @@
 <template>
   <div>
     <span>执行环境：</span>
-    <el-select v-model="selectValue.branch" @change="v => emits('input', v)" class="m-2" placeholder="请选择执行环境">
+    <el-select v-model="selectValue.branch" @change="handleChange" class="m-2" placeholder="请选择执行环境">
       <el-option v-for="item in options" :key="item.id" :label="item.env_name" :value="item.branch" />
     </el-select>
   </div>
@@ -15,10 +15,7 @@
   </div>
 </template>
 <script setup>
-
-
-
-import { defineEmits, ref, onMounted, reactive } from 'vue'
+import { defineEmits, ref, onMounted, reactive, unref } from 'vue'
 import axios from '@/lin/plugin/axios'
 
 let selectValue = reactive({
@@ -50,6 +47,15 @@ let getOptions = async function () {
     emits('input', selectValue.branch)
   }
 }
+
+let handleChange = v => {
+  let { env_host, db_host, db_port } = unref(options).find(e => e.branch === v)
+  selectValue.env_host = env_host
+  selectValue.db_host = db_host
+  selectValue.db_port = db_port
+  emits('input', v)
+}
+
 onMounted(() => getOptions())
 </script>
 <style lang="scss" scoped>

@@ -21,7 +21,7 @@
       <integration-list :planData="planData" @changePage="changePage"></integration-list>
     </div>
     <div v-else-if="pagePlan==2">
-      <atom-list :caseData="caseData" @changePage="changePage"></atom-list>
+      <atom-list :caseData="caseData" :planData="planData" @changePage="changePage"></atom-list>
     </div>
     <div v-else-if="pagePlan==3">
       <detail-page :atomData="atomData" @changePage="changePage"></detail-page>
@@ -45,8 +45,9 @@ export default {
     let planData=ref({})
     let caseData=ref({})
     let atomData=ref({})
-    const changePage = function(data){
-      pagePlan.value=pagePlan.value+1;
+    const changePage = function (data) {
+      pagePlan.value = pagePlan.value + 1;
+      debugger
       switch (pagePlan.value){
         case 1:planData.value=data; break;
         case 2:caseData.value=data; break;

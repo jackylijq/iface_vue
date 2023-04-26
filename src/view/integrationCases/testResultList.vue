@@ -1,30 +1,54 @@
 <template>
   <div>
     <el-descriptions class="border" direction="horizontal" :column="1">
-      <el-descriptions-item label="用例名称">{{ testInfo.case_title }}</el-descriptions-item>
-      <el-descriptions-item label="执行状态"
-        >成功: {{ testInfo.pass_num || 0 }} 失败: {{ testInfo.failed_num || 0 }} 未执行:{{ testInfo.un_run_num || 0 }}
+      <el-descriptions-item label="集成用例名称">{{ testInfo.case_title }}</el-descriptions-item>
+      <el-descriptions-item label="执行状态">
+        <span class="--pass">成功: {{ testInfo.pass_num || 0 }}</span>
+        <span class="--fail" style="margin: 0 40px">失败: {{ testInfo.failed_num || 0 }}</span>
+        <span>未执行:{{ testInfo.un_run_num || 0 }}</span>
         <el-button type="primary" v-show="testInfo.un_run_num != 0" @click="handleRefresh"
           >刷新</el-button
         ></el-descriptions-item
       >
-      <el-descriptions-item label="执行结果"
-        >{{ testInfo.un_run_num > 0 ? '未完成' : testInfo.failed_num > 0 ? '失败' : '成功' }}
+      <el-descriptions-item label="执行结果">
+        <span
+          :class="{ '--pass': testInfo.un_run_num == 0 && testInfo.failed_num == 0, '--fail': testInfo.failed_num > 0 }"
+        >
+          {{ testInfo.un_run_num > 0 ? '未完成' : testInfo.failed_num > 0 ? '测试失败' : '测试成功' }}
+        </span>
       </el-descriptions-item>
     </el-descriptions>
 
     <p style="font-size: 14px; margin: 8px 0; text-indent: 8px">执行情况详情</p>
     <el-table :data="tabbleData" stripe style="width: 100%">
-      <el-table-column type="index" label="序号" width="70" />
-      <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称">
+      <el-table-column fixed type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
+      <el-table-column prop="id" label="用例编号" width="100px"> </el-table-column>
+      <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例标题" min-width="150px">
         <template #default="{ row }">
           <span @click="handleDetail(row)" style="color: #3963bc; cursor: pointer">{{ row.case_title }}</span>
         </template>
       </el-table-column>
-      <el-table-column :show-overflow-tooltip="true" prop="test_result" label="执行结果" />
+      <el-table-column :show-overflow-tooltip="true" prop="test_result" label="执行结果">
+        <template #default="scope">
+          <span :class="{ '--pass': scope.row.test_result === '成功', '--fail': scope.row.test_result == '失败' }">
+            {{ scope.row.test_result }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="case_variable" label="参数变量" :show-overflow-tooltip="true">
+        <template #default="scope">
+          <div>{{ scope.row.case_variable }}</div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="message" label="执行信息" :show-overflow-tooltip="true"  min-width="150px"> </el-table-column>
+      <el-table-column label="环境" > 
+        <template #default>
+          <!-- {{ planData.exe_env }} -->
+        </template>
+      </el-table-column>
+
       <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="执行人员" />
       <el-table-column :show-overflow-tooltip="true" prop="update_time" label="执行时间" />
-      <el-table-column :show-overflow-tooltip="true" prop="message" label="失败原因" />
     </el-table>
     <el-pagination
       class="page"
@@ -49,7 +73,7 @@ let handleDetail = function (row) {
     query: {
       ...router.currentRoute.value.query,
       case_id: row.case_id,
-      id:row.id
+      id: row.id,
     },
   })
   // emitter.emit('custom-close')
