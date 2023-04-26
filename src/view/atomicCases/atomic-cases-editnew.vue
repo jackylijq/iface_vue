@@ -546,7 +546,9 @@ setup() {
          item.valueType = item.type
       }
       if(!item.children || item.children.length==0) {
-        if(item.valueType == 'null' ){
+        if(item.valueType=='object') {
+          obj[item.name] = {}
+        }else if(item.valueType == 'null' ){
           obj[item.name] = ''
         }else if(item.valueType == 'number') {
          if(item.value == undefined) {
