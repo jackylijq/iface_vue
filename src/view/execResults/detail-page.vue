@@ -8,9 +8,11 @@
             :style="blockMargin"
         >
             <el-descriptions-item label="用例名称" :span="1">{{ atomData.iface_name }}</el-descriptions-item>
+            <el-descriptions-item label="用例编号" :span="1">{{ atomData.id }}</el-descriptions-item>
             <el-descriptions-item label="接口地址" :span="2">{{ atomData.request_url }}</el-descriptions-item>
             <el-descriptions-item label="请求方式" :span="1">{{ atomData.request_method }}</el-descriptions-item>
             <el-descriptions-item label="执行结果" :span="1">{{ atomData.test_result=='pass'?'成功':'失败' }}</el-descriptions-item>
+            <el-descriptions-item label="错误信息" :span="2" v-if="atomData.message&&atomData.message.length>0">{{ atomData.message }}</el-descriptions-item>
         </el-descriptions>
         <el-descriptions
             :column="1"
