@@ -48,7 +48,7 @@
           <el-table-column
           :show-overflow-tooltip="true"
           fixed
-            prop="name"
+            prop="id"
             label="用例编号"
             >
           </el-table-column>
@@ -107,7 +107,7 @@
             :show-overflow-tooltip="true">
           </el-table-column>
           <el-table-column
-            prop="pass_num"
+            prop="exe_env"
             label="环境"
             :show-overflow-tooltip="true">
           </el-table-column>
