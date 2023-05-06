@@ -168,114 +168,246 @@
         </el-tabs>
       </div>
       <div class="stepThree" v-show="step == '3'">
-        <div class="headerTitle">结果检查</div>
-        <div>
-          <span class="checkTitle">检查类型：</span>
-          <div class="inputView">响应参数</div>
-          <span class="checkName">数据库名称：</span>
-          <div class="rightPart">
-            <div class="inputView">{{dbName}}</div>
-            <span class="tip">
-            <el-popover
-            placement="right"
-            title="Note"
-            :width="220"
-            trigger="click"
-            content="当前接口检查会从标记的数据库中进行数据获取，如果数据获取的库名与系统给的不一致，需要手动在SQL中进行库名指定，比如：select * from icode_upms.sys_category"
-            >
-              <template #reference>
-                <i class="el-icon-question"></i>
-              </template>
-            </el-popover>
-          </span>
-          </div>
-        </div>
-        <el-alert
-        title="响应参数中的响应码为必须校验内容，其他内容根据实际需要填写,目前响应码为固定值，其他数据只支持从数据库查询"
-        type="info"
-        class="tipInfo"
-        show-icon>
-        </el-alert>
-        <div class="sqlCheck">
-          <span class="checkTitle">检查sql：</span>
-          <el-input
-            type="textarea"
-            :rows="3"
-            v-model="checkSql.response"
-            style="width:650px">
-          </el-input>
-          <span class="tipTwo">
-            <el-popover
-            placement="right"
-            title="Note"
-            :width="220"
-            trigger="click"
-            content="当前的检查sql只针对响应数据的第一层json的数据，为空，则第一层不进行统一数据获取"
-            >
-              <template #reference>
-                <i class="el-icon-question"></i>
-              </template>
-            </el-popover>
-          </span>
-        </div>
-        <el-table :data="checkResponseTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
-          <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" width="auto"/>
-          <el-table-column :show-overflow-tooltip="true" prop="type" label="类型" width="auto"/>
-          <el-table-column :show-overflow-tooltip="true" prop="description" label="字段含义"/>
-          <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值" width="auto"/>
-          <el-table-column :show-overflow-tooltip="true" prop="checked" label="是否检查" width="auto">
-            <template v-slot="scope">
-              <el-checkbox v-if="scope.row.name!=='code'" v-model="scope.row.isChecked" @change="responseSqlCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
-              <el-checkbox v-if="scope.row.name=='code'" v-model="scope.row.isChecked" disabled>是</el-checkbox>
-            </template>
-          </el-table-column>
-          <el-table-column :show-overflow-tooltip="true" prop="checkValue" label="检查值" width="500">
-            <template v-slot="scope">
-              <el-input v-model="scope.row.checkValue" :disabled="!scope.row.isChecked" size="small" @click="inputFoucus(scope.row)" @blur="inputBlur" @input="inputChange"></el-input>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div class="headerTitle">检查值配置</div>
-          <el-input
-              type="textarea"
-              :rows="3"
-              :disabled="itemSqlDisabled"
-              v-model="checkSql.itemSql"
-              @input="itemSqlChange"
-              style="width:750px;margin:0 0 30px 50px">
-          </el-input>
-        <div>
+        <div class="headerTitle">基础信息</div>
+        <el-form ref="checkBaseForm" :model="checkForm" label-width="120px" class="checkForm">
+          <el-row>
+            <el-col :span="6">
+              <el-form-item label="检查类型：">
+                <template slot="label">
+                  <div class="label">检查类型：</div>
+                </template>
+                <el-input readonly v-model="checkForm.checkType"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6">
+              <el-form-item label="数据库名称：">
+                <template slot="label">
+                  <div class="label">数据库名称：</div>
+                </template>
+                <div class="rightPart">
+                  <div class="inputView">{{dbName}}</div>
+                  <span class="tip">
+                    <el-popover
+                    placement="right"
+                    title="Note"
+                    :width="220"
+                    trigger="click"
+                    content="当前接口检查会从标记的数据库中进行数据获取，如果数据获取的库名与系统给的不一致，需要手动在SQL中进行库名指定，比如：select * from icode_upms.sys_category"
+                    >
+                      <template #reference>
+                        <i class="el-icon-question"></i>
+                      </template>
+                    </el-popover>
+                  </span>
+                </div>
+              </el-form-item>
+            </el-col>
+            <el-col :span="6">
+              <el-form-item label="等待时间：" prop="wait_time" :rules="{pattern:/^[0-9]\d*$/, message: '请输入大于或等于0的整数！', trigger: 'change'}">
+                <template slot="label">
+                  <div class="label">等待时间：</div>
+                </template>
+                <el-input-number v-model="checkForm.wait_time"  controls-position="right" :min="0" style='width:150px;height:32px'/>
+                <span class="timeTip">
+                  <el-popover
+                  placement="right"
+                  title="Note"
+                  :width="220"
+                  trigger="hover"
+                  content="执行检查的等待时间"
+                  >
+                    <template #reference>
+                      <i class="el-icon-question"></i>
+                    </template>
+                  </el-popover>
+                </span>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+        <el-tabs v-model="checkTabName" @tab-click="handleClickTab">
+          <el-tab-pane label="响应数据检查">
+            <keep-alive>
+              <div>
+              <el-alert
+              title="响应参数中的响应码为必须校验内容，其他内容根据实际需要填写,目前响应码为固定值，其他数据只支持从数据库查询"
+              type="info"
+              class="tipInfo"
+              show-icon>
+              </el-alert>
+              <div class="sqlCheck">
+                <span class="checkTitle">检查sql：</span>
+                <el-input
+                  type="textarea"
+                  :rows="3"
+                  v-model="checkSql.response"
+                  style="width:650px">
+                </el-input>
+                <span class="tipTwo">
+                  <el-popover
+                  placement="right"
+                  title="Note"
+                  :width="220"
+                  trigger="click"
+                  content="当前的检查sql只针对响应数据的第一层json的数据，为空，则第一层不进行统一数据获取"
+                  >
+                    <template #reference>
+                      <i class="el-icon-question"></i>
+                    </template>
+                  </el-popover>
+                </span>
+              </div>
+              <el-table :data="checkResponseTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+                <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" width="auto"/>
+                <el-table-column :show-overflow-tooltip="true" prop="type" label="类型" width="auto"/>
+                <el-table-column :show-overflow-tooltip="true" prop="description" label="字段含义"/>
+                <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值" width="auto"/>
+                <el-table-column :show-overflow-tooltip="true" prop="checked" label="是否检查" width="auto">
+                  <template v-slot="scope">
+                    <el-checkbox v-if="scope.row.name!=='code'" v-model="scope.row.isChecked" @change="responseSqlCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
+                    <el-checkbox v-if="scope.row.name=='code'" v-model="scope.row.isChecked" disabled>是</el-checkbox>
+                  </template>
+                </el-table-column>
+                <el-table-column :show-overflow-tooltip="true" prop="checkValue" label="检查值" width="500">
+                  <template v-slot="scope">
+                    <el-input v-model="scope.row.checkValue" :disabled="!scope.row.isChecked" size="small" @click="inputFoucus(scope.row)" @blur="inputBlur" @input="inputChange"></el-input>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div class="headerTitle">检查值配置</div>
+              <el-input
+                  type="textarea"
+                  :rows="3"
+                  :disabled="itemSqlDisabled"
+                  v-model="checkSql.itemSql"
+                  @input="itemSqlChange"
+                  style="width:750px;margin:0 0 30px 50px">
+              </el-input>
+            </div>
+            </keep-alive>
+          </el-tab-pane>
+          <el-tab-pane label="请求数据检查">
+            <keep-alive>
+              <div>
+              <el-alert
+              title="请求参数针对所有的字段进行校验，不支持字段选择，检查的sql为空，则不检查"
+              type="info"
+              class="tipInfo"
+              show-icon>
+              </el-alert>
+              <div class="sqlCheck">
+                <span class="checkTitle">检查sql：</span>
+                <el-input
+                  type="textarea"
+                  :rows="3"
+                  v-model="checkSql.request"
+                  style="width:650px">
+                </el-input>
+              </div>
+              <el-table :data="checkQueryTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
+                <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
+                <el-table-column :show-overflow-tooltip="true" prop="type" label="参数类型"/>
+                <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
+                <el-table-column :show-overflow-tooltip="true" prop="description" label="字段含义" width="auto"/>
+                <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值">
+                </el-table-column>
+                <el-table-column :show-overflow-tooltip="true" prop="value" label="是否检查">
+                  <template v-slot="scope">
+                    <el-checkbox v-model="scope.row.isChecked" @change="requestSQLCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+            </keep-alive>
+          </el-tab-pane>
+          <el-tab-pane label="函数检查">
+            <keep-alive>
+              <div>
+                <el-alert
+                title="使用底层函数对接口的响应数据进行检查"
+                type="info"
+                class="tipInfo"
+                show-icon>
+                </el-alert>
+                <div class="headerTitle">检查函数列表</div>
+                <el-table :data="checkFuncTableData" stripe class="headerTable">
+                  <el-table-column width="100" type="index" label="序号"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="id" label="函数编号"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="en_name" label="英文名称"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="cn_name" label="中文名称" :formatter="change" />
+                  <el-table-column :show-overflow-tooltip="true" prop="func_desc" label="函数说明" width="auto"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="创建人">
+                  </el-table-column>
+                  <el-table-column :show-overflow-tooltip="true" prop="update_time" label="创建时间"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="value" label="操作">
+                    <template v-slot="scope">
+                      <span class="addBtn" @click="deleteCheckFunc(scope.row,scope.$index)">删除</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <el-form ref="checkSearchForm" :model="checkSearchForm"  label-width="120px" class="checkForm" style="margin: 15px 0;">
+                  <el-row>
+                    <el-col :span="6">
+                      <el-form-item label="函数分类：">
+                        <el-select style="width:80%" v-model="searchForm.group_id" clearable>
+                          <el-option v-for="item in checkFuncList" :key="item.label" :label="item.label" :value="item.value"/>
+                        </el-select>
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                      <el-form-item label="函数英文名称：">
+                        <el-input style="width:80%" v-model="searchForm.en_name">
+                        </el-input>
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                      <el-form-item label="函数中文名称：">
+                        <el-input style="width:80%" v-model="searchForm.cn_name">
+                        </el-input>
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                      <el-button type="primary" @click="searchList"><i class="el-icon-search" style="margin-right:3px"></i>查询</el-button>
+                      <el-button @click="refreshSearch"><i class="el-icon-refresh-right" style="margin-right:3px"></i>重置</el-button>
+                    </el-col>
+                  </el-row>
+                </el-form>
+                <el-button type="primary" class="addButton" @click="selectListAdd">批量新增</el-button>
+                <el-table :data="checkFuncSearchData" stripe class="headerTable" @selection-change="selectionChange">
+                  <el-table-column type="selection" width="55"/>
+                  <el-table-column width="100" type="index" label="序号"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="en_name" label="英文名称"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="cn_name" label="中文名称" :formatter="change" />
+                  <el-table-column :show-overflow-tooltip="true" prop="func_desc" label="函数说明" width="auto"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="创建人">
+                  </el-table-column>
+                  <el-table-column :show-overflow-tooltip="true" prop="update_time" label="创建时间"/>
+                  <el-table-column :show-overflow-tooltip="true" prop="value" label="操作">
+                    <template v-slot="scope">
+                      <span class="addBtn" @click="addCheckFunc(scope.row)">添加</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <el-pagination
+                  class="f-r uinn-tb10"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  :page-sizes="[10, 20,50]"
+                  :page-size="pageSize"
+                  :current-page="currentPage"
+                  :total="total"
+                  @size-change="handleSizeChange"
+                  @current-change="handleCurrentChange"
+                >
+                </el-pagination>
+              </div>
+            </keep-alive>
+          </el-tab-pane>
+        </el-tabs>
+        <!-- <div>
           <span class="checkTitle">检查类型：</span>
           <div class="inputView">请求参数</div>
-        </div>
-        <el-alert
-        title="请求参数针对所有的字段进行校验，不支持字段选择，检查的sql为空，则不检查"
-        type="info"
-        class="tipInfo"
-        show-icon>
-        </el-alert>
-        <div class="sqlCheck">
-          <span class="checkTitle">检查sql：</span>
-          <el-input
-            type="textarea"
-            :rows="3"
-            v-model="checkSql.request"
-            style="width:650px">
-          </el-input>
-        </div>
-        <el-table :data="checkQueryTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
-          <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称"/>
-          <el-table-column :show-overflow-tooltip="true" prop="type" label="参数类型"/>
-          <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
-          <el-table-column :show-overflow-tooltip="true" prop="description" label="字段含义" width="auto"/>
-          <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值">
-          </el-table-column>
-          <el-table-column :show-overflow-tooltip="true" prop="value" label="是否检查">
-            <template v-slot="scope">
-              <el-checkbox v-model="scope.row.isChecked" @change="requestSQLCheck(scope.row)">{{scope.row.isChecked?'是':'否'}}</el-checkbox>
-            </template>
-          </el-table-column>
-        </el-table>
+        </div> -->
+        
         <div class="btns">
           <el-button class="btns-next" @click="save()" type="primary">保存</el-button>
           <el-button @click="changeStep('2','3')">上一步</el-button>
@@ -302,6 +434,8 @@ setup() {
   let checkResponseTableData = ref([])
   let checkQueryTableData = ref([])
   let itemSqlDisabled = ref(true)
+  let checkFuncTableData = ref([])
+  let checkFuncSearchData = ref([])
   const requestJson = ref({})
   let responseJson = ref({})
   const checkSql = reactive({
@@ -310,6 +444,19 @@ setup() {
     itemSql:'',
     childCode:''
   })
+  const pageSize = ref(10)
+  const curPage = ref(1)
+  const total = ref(0)
+  const checkForm = reactive({
+    wait_time:'0',
+    checkType:'响应参数'
+  })
+  const searchForm = reactive({
+    group_id:'',
+    en_name:'',
+    cn_name:''
+  })
+  const checkFuncList = ref({})
   const formData = ref({
     case_title: '',
     case_desc: '',
@@ -806,6 +953,19 @@ setup() {
     })
     return obj
   }
+  const addCheckFunc = function (data) {
+    let i = checkFuncTableData.value.findIndex(item => item.id == data.id)
+    if(i == -1) {
+      checkFuncTableData.value.push(data)
+    }
+  }
+  const deleteCheckFunc = function (data,index) {
+    ElMessageBox.confirm(`是否确认删除该数据?`, '提示', {
+        type:'warning'
+      }).then(async() => {
+        checkFuncTableData.value.splice(index, 1) 
+    })
+  }
   function checkSqlRequest (val,ischildren) {
     let obj = {
       check_field:[]
@@ -844,6 +1004,36 @@ setup() {
   }
   let responseCheck = function (val) {
     childrenResUrl(backTableData.value,'')
+  }
+  let getCheckBaseInfo = async function () {
+      let data = {
+          "project_line_id": 1,
+          "group_type":"plan"
+      } 
+      const res = await axios({
+        method: 'post',
+        url: '/iftest/condition/group/list',
+        data,
+      })
+      checkFuncList.value = []
+      res.data.datasList.map(item => {
+        checkFuncList.value.push({
+          label:item.group_name,
+          value:item.id
+        })
+      })
+
+      let param = {
+        curPage:1,
+        pageSize:10
+      } 
+      const res2 = await axios({
+        method: 'post',
+        url: '/iftest/functions/thirdFunc-list',
+        data:param,
+      })
+      checkFuncSearchData.value = res2.data.datasList || []
+      total.value = res2.data.total
   }
   let getIfaceDetail = async function (iface_id) {
       let data = {id:iface_id}
@@ -1053,13 +1243,27 @@ setup() {
       }
   }
   const save = async function () {
+    let reg1 =  new RegExp(/^[0-9]\d*$/)
+    if(checkForm.wait_time&&!reg1.test(checkForm.wait_time)) {
+      ElMessage({
+        message: '等待时间请输入大于或等于0的整数！',
+        type: 'warning',
+      })
+      return false
+    }
+    let third_funList = []
+    checkFuncTableData.value.forEach(item => {
+      third_funList.push(item.en_name)
+    })
     let result_check = {
       response:{},
       request:{},
       res_code:{
         "code_name":"code",
         "code_value":''
-      }
+      },
+      wait_time:checkForm.wait_time,
+      third_fun:third_funList.length>0?third_funList.join(','):''
     }
     result_check.response= checkSqlTransObj(checkResponseTableData.value)
     result_check.response.check_sql =  checkSql.response||""
@@ -1078,6 +1282,7 @@ setup() {
         headerObj[el.name] = el.value || ''
       }
     })
+
     let param = {
       iface_id:tableParams.iface_id,
       case_title:formData.value.case_title,
@@ -1185,9 +1390,78 @@ setup() {
     })
 
   }
+  const searchList = async function () {
+    let param = {
+      curPage:curPage.value,
+      pageSize:pageSize.value,
+      en_name:searchForm.en_name,
+    }
+    if(searchForm.en_name&&searchForm.en_name!=='') {
+      param.en_name = searchForm.en_name
+    }
+    if(searchForm.group_id&&searchForm.group_id!=='') {
+      param.group_id = searchForm.group_id
+    }
+    if(searchForm.cn_name&&searchForm.cn_name!=='') {
+      param.cn_name = searchForm.cn_name
+    }
+    const res = await axios({
+      method: 'post',
+      url: '/iftest/functions/thirdFunc-list',
+      data: param,
+    })
+    checkFuncSearchData.value = res.data.datasList || []
+    total.value = res.data.total
+
+  }
+  const refreshSearch = async function () {
+    let param = {
+        curPage:1,
+        pageSize:10
+      } 
+      const res2 = await axios({
+        method: 'post',
+        url: '/iftest/functions/thirdFunc-list',
+        data:param,
+      })
+      total.value = res2.data.total
+      checkFuncSearchData.value = res2.data.datasList || []
+      searchForm.en_name = ''
+      searchForm.group_id = ''
+      searchForm.cn_name = ''
+  }
+  const handleSizeChange = function (val) {
+    pageSize.value = val
+    searchList()
+
+  }
+  const handleCurrentChange = function (val) {
+    curPage.value = val
+    searchList()
+  }
+  const selectList = ref([])
+  const selectionChange = function (arr) {
+    selectList.value = arr
+  }
+  const selectListAdd = function () {
+    if(selectList.value.length==0) {
+      ElMessage({
+          message: '请至少勾选一条数据',
+          type: 'warning',
+        })
+      return
+    }
+    selectList.value.forEach(item => {
+      let i = checkFuncTableData.value.findIndex(el => el.id == item.id)
+      if(i == -1) {
+        checkFuncTableData.value.push(item)
+      }
+    })
+  }
   onMounted(()=>{
     getIfaceDetail(tableParams.iface_id)
     getSqlName(tableParams.project_id)
+    getCheckBaseInfo()
   })
   return {
     ruleFormRef,
@@ -1208,6 +1482,7 @@ setup() {
     onError,
     tableParams,
     getIfaceDetail,
+    getCheckBaseInfo,
     objToTree,
     transObj,
     applyTableData,
@@ -1240,7 +1515,24 @@ setup() {
     checkSqlList,
     checkedList,
     addHeaderInfo,
-    deleteHeaderInfo
+    deleteHeaderInfo,
+    checkForm,
+    checkFuncTableData,
+    checkFuncSearchData,
+    checkFuncList,
+    addCheckFunc,
+    deleteCheckFunc,
+    searchForm,
+    searchList,
+    refreshSearch,
+    pageSize,
+    curPage,
+    total,
+    handleSizeChange,
+    handleCurrentChange,
+    selectionChange,
+    selectList,
+    selectListAdd
   }
   
 },
@@ -1327,6 +1619,11 @@ setup() {
       height:32px;
       line-height:32px
     }
+    .waitTime{
+      font-size: 12px;
+      margin-left: 60px;
+      display: inline-block;
+    }
     .tip {
       float: left;
       box-sizing: border-box;
@@ -1364,6 +1661,30 @@ setup() {
       margin-bottom: 25px;
   }
   
+}
+
+.label {
+  font-size: 12px;
+}
+.checkForm{
+  ::v-deep .el-form-item__label {
+    font-size: 12px;
+  }
+}
+
+.addBtn{
+  color:#3A8CE2;
+  cursor: pointer;
+}
+
+.f-r {
+  float:right;
+  margin-top:25px;
+  margin-right:140px
+}
+.addButton {
+  margin-left: 20px;
+  margin-bottom:15px
 }
 ::v-deep .el-table__expand-icon {
   -webkit-transform: rotate(0deg);
