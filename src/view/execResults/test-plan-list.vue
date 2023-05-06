@@ -34,7 +34,13 @@
       <el-table-column fixed type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
       <el-table-column fixed prop="batch_id" label="批次ID" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column :show-overflow-tooltip="true" fixed prop="plan_title" label="计划名称"> </el-table-column>
-      <el-table-column prop="exe_result" label="执行结果" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column prop="exe_result" label="执行结果" :show-overflow-tooltip="true"> 
+        <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <span style="margin-left: 10px" :style="{color:resultType[scope.row.exe_result]?resultType[scope.row.exe_result].classType:''}">{{ resultType[scope.row.exe_result]?resultType[scope.row.exe_result].name:resultType.otherList.name }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="pass_num" label="成功数量" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column prop="failed_num" label="失败数量" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column prop="un_run_num" label="未执行" :show-overflow-tooltip="true"> </el-table-column>
@@ -43,7 +49,7 @@
       <el-table-column prop="exe_time" label="执行时间" width="180"> </el-table-column>
       <el-table-column fixed="right" label="操作" width="120">
         <template #default="scope">
-          <el-button @click="openRow(scope)" text size="small"> 展开 </el-button>
+          <el-button @click="openRow(scope)" type="text" size="small"> 查看详情 </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -71,6 +77,7 @@ export default {
       curPage: 1,
       pageSize: 10,
     })
+    const resultType = ref({pass:{name:'执行成功',value:'pass',classType:'#8af039'},failed:{name:'执行失败',value:'failed',classType:'#d4001a'},otherList:{name:'未执行',value:'',classType:''}})
     const totalConfig = ref(0)
     const tableParams = ref({
       batch_id: router.currentRoute.value.query.batch_id,
@@ -138,6 +145,7 @@ export default {
       search,
       sizeChange,
       currentChange,
+      resultType
     }
   },
 }

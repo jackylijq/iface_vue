@@ -16,7 +16,7 @@
           <el-table-column :show-overflow-tooltip="true" prop="atom_case_num" label="原子用例数量" min-width="150px" />
           <el-table-column :show-overflow-tooltip="true" label="用例状态" min-width="120px">
             <template #default="{ row, column, $index }">
-              <span :class="[row.case_status==='pass'?'--pass':'--fail']">{{ row.case_status_text }}</span>
+              <span :class="{'--pass':row.case_status==='pass','--fail':row.case_status==='failed'}">{{ row.case_status_text }}</span>
             </template>
           </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="exe_result" label="执行结果" min-width="100px" />
@@ -29,6 +29,7 @@
               <el-button type="primary" text size="small" @click="handleTest(scope)">测试</el-button>
               <el-button size="small" @click="handleEdit(scope)">编辑</el-button>
               <el-button type="danger" size="small" @click="handleDelete(scope)">删除</el-button>
+              <el-button size="small" @click="handleCopy(scope)">复制</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -230,7 +231,7 @@ let getTableData = async function () {
 
   tableData.value = res.data.datasList.map(v => ({
     ...v,
-    case_status_text: v.case_status === 'pass' ? '测试成功' : '测试失败',
+    case_status_text: v.case_status === 'pass' ? '测试成功' : v.case_status === 'failed'?'测试失败':'未测试',
   }))
   pageConfig.total = res.data.total
 }
@@ -255,6 +256,26 @@ let handleDelete = function (scope) {
     if (res.code === 200 && unref(tableData).length === 1 && pageConfig.curPage > 1) {
       pageConfig.curPage--
     }
+
+    getTableData()
+  })
+}
+
+let handleCopy = (scope) => {
+  let { id, case_title } = unref(scope.row)
+
+  ElMessageBox.confirm(`确认复制 ${case_title}`, '提示', {}).then(async () => {
+    let res = await axios({
+      method: 'POST',
+      url: '/iftest/case/scene/copy',
+      data: {
+        id,
+      },
+    })
+    ElMessage({
+      type: res.code === 200 ? 'success' : 'error',
+      message: res.message,
+    })
 
     getTableData()
   })
