@@ -708,8 +708,13 @@ setup() {
         if(typeof item.value === 'number'&&item.value == 0) {
           obj[item.name] = 0
         }
-      }else if(item.valueType == 'array' && item.children && item.children.length>0) {
+      }else if(item.valueType == 'array' && item.children && item.children.length == 1) {
         obj[item.name] = [firstTrans(item.children)]
+      }else if(item.valueType == 'array' && item.children && item.children.length > 1) {
+        obj[item.name] = []
+        item.children.forEach((el,i) => {
+          obj[item.name].push(firstTrans(el.children))
+        })
       }else if(item.valueType == 'object' && item.children){
         obj[item.name] = firstTrans(item.children)
       }
@@ -720,13 +725,28 @@ setup() {
   const backTrans = function (obj,type) {
     let arr = []
     for (let key in obj) {
-      if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object') {
+      if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object'&&obj[key].length<=1) {
         arr.push({
           name:key,
           valueType:'array',
           children:backTrans(obj[key][0],type)
         })
 
+      }else if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object'&&obj[key].length>1) {
+        console.log(obj[key],'obj[key]')
+        let childrenArr = []
+        obj[key].forEach((el,i) => {
+          let arrItem = {}
+          arrItem.name = i.toString()
+          arrItem.valueType = 'object'
+          arrItem.children = backTrans(obj[key][i],type)
+          childrenArr.push(arrItem)
+        })
+        arr.push({
+          name:key,
+          valueType:'array',
+          children:childrenArr
+        })
       }else if (Array.isArray(obj[key])&&typeof obj[key][0] !== 'object') {
         arr.push({
           name:key,
