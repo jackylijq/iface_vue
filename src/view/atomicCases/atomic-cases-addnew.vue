@@ -555,8 +555,8 @@ setup() {
         getRequestAllChecked(request)
       }
     }else if(val == 3) {
-      requestJson.value = firstTrans(queryTableData.value)
-      responseJson.value = firstTrans(backTableData.value)
+      requestJson.value = firstTrans(queryTableData.value,'query')
+      responseJson.value = firstTrans(backTableData.value,'response')
       checkSql.itemSql = ''
       checkResponseTableData.value = JSON.parse(JSON.stringify(backTableData.value))
       getParentCode(checkResponseTableData.value,1)
@@ -714,8 +714,8 @@ setup() {
   const handleClick = (tab, event) => {
       data.activeName = tab.index
       if(data.activeName == '1') {
-        requestJson.value = firstTrans(queryTableData.value)
-        responseJson.value = firstTrans(backTableData.value)
+        requestJson.value = firstTrans(queryTableData.value,'query')
+        responseJson.value = firstTrans(backTableData.value,'response')
         getCaseVariable(queryTableData.value)
         getResultVariable(backTableData.value)
         isFirstTrans = false
@@ -798,7 +798,7 @@ setup() {
 
   }
   //全景转高级
-  const firstTrans = function (val) {
+  const firstTrans = function (val,type) {
     let obj = {}
     val.forEach(item => {
       if(isFirstTrans) {
@@ -825,15 +825,15 @@ setup() {
         if(typeof item.value === 'number'&&item.value == 0) {
           obj[item.name] = 0
         }
-      }else if(item.valueType == 'array' && item.children && item.children.length == 1) {
-        obj[item.name] = [firstTrans(item.children)]
-      }else if(item.valueType == 'array' && item.children && item.children.length > 1) {
+      }else if(item.valueType == 'array' && item.children && (item.children.length == 1 && type=='query' || item.children.length>0 &&type=='response')) {
+        obj[item.name] = [firstTrans(item.children,type)]
+      }else if(item.valueType == 'array' && item.children && item.children.length > 1 && type=='query') {
         obj[item.name] = []
         item.children.forEach((el,i) => {
-          obj[item.name].push(firstTrans(el.children))
+          obj[item.name].push(firstTrans(el.children,type))
         })
       }else if(item.valueType == 'object' && item.children){
-        obj[item.name] = firstTrans(item.children)
+        obj[item.name] = firstTrans(item.children,type)
       }
     })
     return obj
@@ -842,14 +842,14 @@ setup() {
   const backTrans = function (obj,type) {
     let arr = []
     for (let key in obj) {
-      if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object'&&obj[key].length<=1) {
+      if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object'&&(obj[key].length<=1&&type=='query' || type=='response')) {
         arr.push({
           name:key,
           valueType:'array',
           children:backTrans(obj[key][0],type)
         })
 
-      }else if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object'&&obj[key].length>1) {
+      }else if(Array.isArray(obj[key])&&typeof obj[key][0] == 'object'&&obj[key].length>1&&type=='query') {
         console.log(obj[key],'obj[key]')
         let childrenArr = []
         obj[key].forEach((el,i) => {
