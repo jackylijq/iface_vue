@@ -48,7 +48,7 @@
           <el-table-column
           :show-overflow-tooltip="true"
           fixed
-            prop="id"
+            prop="scene_id"
             label="用例编号"
             >
           </el-table-column>
