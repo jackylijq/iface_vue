@@ -2,7 +2,7 @@
   <div class="searchForm">
     <el-descriptions :column="2" :size="size" class="descriptBox" direction="horizontal" :style="blockMargin">
       <el-descriptions-item label="集成用例名称" :span="1">{{ caseData.case_title }}</el-descriptions-item>
-      <el-descriptions-item label="集成用例ID" :span="1">{{ caseData.id }}</el-descriptions-item>
+      <el-descriptions-item label="集成用例ID" :span="1">{{ caseData.scene_id }}</el-descriptions-item>
       <el-descriptions-item label="执行状态" :span="2">
         <span
           class="stateSpan"
@@ -42,7 +42,7 @@
   <div>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column fixed type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
-      <el-table-column fixed prop="id" label="用例编号" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column fixed prop="case_id" label="用例编号" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column fixed prop="iface_name" label="集成用例名称" :show-overflow-tooltip="true"> </el-table-column>
       <!-- <el-table-column
           :show-overflow-tooltip="true"

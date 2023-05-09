@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="value" top="8vh" title="选择用例" width="900px" @close="emits('input', false)">
+  <el-dialog v-model="props.value" top="8vh" title="选择用例" width="900px" @close="emits('input', false)">
     <div class="search">
       <span>项目名称:</span>
       <el-select-v2
