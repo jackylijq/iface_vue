@@ -684,9 +684,9 @@ setup() {
   const firstTrans = function (val,type) {
     let obj = {}
     val.forEach(item => {
-      if(isFirstTrans) {
-         item.valueType = item.type
-      }
+      // if(isFirstTrans) {
+      //    item.valueType = item.type
+      // }
       if(!item.children || item.children.length==0) {
         if(item.valueType=='object') {
           obj[item.name] = {}
