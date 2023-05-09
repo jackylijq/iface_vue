@@ -708,9 +708,9 @@ setup() {
         if(typeof item.value === 'number'&&item.value == 0) {
           obj[item.name] = 0
         }
-      }else if(item.valueType == 'array' && item.children && (item.children.length == 1 && type=='query' || item.children.length>0 &&type=='response')) {
+      }else if(item.valueType == 'array' && item.children && (item.children.length == 1 && type=='query' || item.children.length > 1 && type=='query' && item.children[0].name!=='0' || item.children.length>0 &&type=='response')) {
         obj[item.name] = [firstTrans(item.children,type)]
-      }else if(item.valueType == 'array' && item.children && item.children.length > 1 && type=='query') {
+      }else if(item.valueType == 'array' && item.children && item.children.length > 1 && type=='query' && item.children[0].name=='0') {
         obj[item.name] = []
         item.children.forEach((el,i) => {
           obj[item.name].push(firstTrans(el.children,type))
