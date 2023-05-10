@@ -874,7 +874,7 @@ setup() {
         arr.push({
           name:key,
           valueType:'object',
-          children:backTrans(obj[key],'type')
+          children:backTrans(obj[key],type)
         })
       }else if(obj[key] == null) {
         let baseInfo = type=='query'?queryBaseInfo.value:responseBaseInfo.value
