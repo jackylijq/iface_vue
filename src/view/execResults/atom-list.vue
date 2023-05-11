@@ -2,7 +2,7 @@
   <div class="searchForm">
     <el-descriptions :column="2" :size="size" class="descriptBox" direction="horizontal" :style="blockMargin">
       <el-descriptions-item label="集成用例名称" :span="1">{{ caseData.case_title }}</el-descriptions-item>
-      <el-descriptions-item label="集成用例ID" :span="1">{{ caseData.id }}</el-descriptions-item>
+      <el-descriptions-item label="集成用例ID" :span="1">{{ caseData.scene_id }}</el-descriptions-item>
       <el-descriptions-item label="执行状态" :span="2">
         <span
           class="stateSpan"
@@ -30,11 +30,11 @@
     </el-descriptions>
   </div>
   <div class="searchInput">
-    <el-input v-model="searchData" @input="search" :placeholder="`请输入用例标题`" class="input-with-select">
+    <el-input v-model="searchData" @input="search" :placeholder="`请输入用例名称`" class="input-with-select">
       <template #prepend>
         <el-select v-model="select" style="width: 110px">
           <!-- <el-option label="批次号" value="1" /> -->
-          <el-option label="用例标题" value="iface_name" />
+          <el-option label="用例名称" value="iface_name" />
         </el-select>
       </template>
     </el-input>
@@ -42,8 +42,8 @@
   <div>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column fixed type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
-      <el-table-column fixed prop="id" label="用例编号" :show-overflow-tooltip="true"> </el-table-column>
-      <el-table-column fixed prop="iface_name" label="用例标题" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column fixed prop="case_id" label="用例编号" :show-overflow-tooltip="true"> </el-table-column>
+      <el-table-column fixed prop="iface_name" label="集成用例名称" :show-overflow-tooltip="true"> </el-table-column>
       <!-- <el-table-column
           :show-overflow-tooltip="true"
           fixed
@@ -54,7 +54,8 @@
       <el-table-column prop="test_result" label="执行结果" :show-overflow-tooltip="true">
         <template #default="scope">
           <div style="display: flex; align-items: center">
-            <span style="margin-left: 10px">{{ scope.row.test_result == 'failed' ? '失败' : '成功' }}</span>
+            <span style="margin-left: 10px" :class="{  '--pass': scope.row.test_result == 'pass',
+            '--fail': scope.row.test_result == 'failed'}">{{ scope.row.test_result == 'failed' ? '执行失败' : '执行成功' }}</span>
           </div>
         </template>
       </el-table-column>
@@ -204,5 +205,11 @@ export default {
       padding: 8px;
     }
   }
+}
+.--fail{
+  color: #d4001a;
+}
+.--pass{
+  color: #8af039;
 }
 </style>

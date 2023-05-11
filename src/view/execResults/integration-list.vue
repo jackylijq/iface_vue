@@ -9,7 +9,7 @@
         >
             <el-descriptions-item label="计划名称" :span="1">{{ planData.plan_title }}</el-descriptions-item>
             <el-descriptions-item label="批次ID" :span="1">{{ planData.batch_id }}</el-descriptions-item>
-            <el-descriptions-item label="计划描述" :span="2">{{ planData.exe_message }}</el-descriptions-item>
+            <!-- <el-descriptions-item label="计划描述" :span="2">{{ planData.exe_message }}</el-descriptions-item> -->
             <el-descriptions-item label="执行进度" :span="2">
               <!-- <span> -->
                 <div style="padding-right:40px">{{ planData.pass_num+planData.failed_num}} / {{planData.pass_num+planData.failed_num+planData.un_run_num }}</div>
@@ -17,7 +17,7 @@
               <!-- </span> -->
             </el-descriptions-item>
             <el-descriptions-item label="执行状态" :span="2">
-                <span class="stateSpan" v-for="(item,index) in stateList" :key="index">{{ item.label }}：{{ item.value }}</span> 
+                <span class="stateSpan" v-for="(item,index) in stateList" :key="index" :style="{color:colorList[index]}">{{ item.label }}：{{ item.value }}</span> 
             </el-descriptions-item>
         </el-descriptions>
       </div>
@@ -46,9 +46,16 @@
             width="80px">
           </el-table-column>
           <el-table-column
+          :show-overflow-tooltip="true"
+          fixed
+            prop="scene_id"
+            label="用例编号"
+            >
+          </el-table-column>
+          <el-table-column
             fixed
             prop="case_title"
-            label="用例标题"
+            label="集成用例名称"
             :show-overflow-tooltip="true"
             >
           </el-table-column>
@@ -63,13 +70,18 @@
             prop="exe_result"
             label="执行结果"
             :show-overflow-tooltip="true">
-            <template #default="scope">
+            <!-- <template #default="scope">
               <div style="display: flex; align-items: center">
                 <span style="margin-left: 10px">{{ scope.row.exe_result=="failed"?'失败':'成功' }}</span>
               </div>
-            </template>
+            </template> -->
+            <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <span style="margin-left: 10px" :style="{color:resultType[scope.row.exe_result]?resultType[scope.row.exe_result].classType:''}">{{ resultType[scope.row.exe_result]?resultType[scope.row.exe_result].name:resultType.otherList.name }}</span>
+          </div>
+        </template>
           </el-table-column>
-          <el-table-column
+          <!-- <el-table-column
             prop="all_num"
             label="用例总数"
             :show-overflow-tooltip="true">
@@ -78,10 +90,25 @@
                 <span style="margin-left: 10px">{{ scope.row.pass_num+scope.row.failed_num+scope.row.un_run_num }}</span>
               </div>
             </template>
-          </el-table-column>
+          </el-table-column> -->
           <el-table-column
             prop="pass_num"
             label="成功数量"
+            :show-overflow-tooltip="true">
+          </el-table-column>
+          <el-table-column
+            prop="failed_num"
+            label="失败数量"
+            :show-overflow-tooltip="true">
+          </el-table-column>
+          <el-table-column
+            prop="un_run_num"
+            label="未执行"
+            :show-overflow-tooltip="true">
+          </el-table-column>
+          <el-table-column
+            prop="exe_env"
+            label="环境"
             :show-overflow-tooltip="true">
           </el-table-column>
           <el-table-column
@@ -102,7 +129,7 @@
                 @click="openRow(scope)"
                 type="text"
                 size="small">
-                展开
+                查看详情
               </el-button>
             </template>
           </el-table-column>
@@ -121,6 +148,8 @@
       // const boxData=props.planData
       const searchData= ref('')
       const select=ref('case_title')
+      const colorList=ref(['#8af039','#d4001a',''])
+      const resultType = ref({pass:{name:'执行成功',value:'pass',classType:'#8af039'},failed:{name:'执行失败',value:'failed',classType:'#d4001a'},otherList:{name:'未执行',value:'',classType:''}})
       // 获取表格数据
       const pageConfig = ref({
         curPage: 1,
@@ -194,6 +223,8 @@
         openRow,
         sizeChange,
         currentChange,
+        colorList,
+        resultType
       }
     },
   }

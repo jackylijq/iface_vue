@@ -47,7 +47,6 @@ export default {
     let atomData=ref({})
     const changePage = function (data) {
       pagePlan.value = pagePlan.value + 1;
-      debugger
       switch (pagePlan.value){
         case 1:planData.value=data; break;
         case 2:caseData.value=data; break;
