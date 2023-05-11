@@ -21,8 +21,8 @@
 
     <p style="font-size: 14px; margin: 8px 0; text-indent: 8px">执行情况详情</p>
     <el-table :data="tabbleData" stripe style="width: 100%">
-      <el-table-column fixed type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
-      <el-table-column prop="id" label="用例编号" width="100px"> </el-table-column>
+      <el-table-column type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
+      <el-table-column prop="case_id" label="用例编号" width="100px"> </el-table-column>
       <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例标题" min-width="150px">
         <template #default="{ row }">
           <span @click="handleDetail(row)" style="color: #3963bc; cursor: pointer">{{ row.case_title }}</span>
@@ -119,7 +119,7 @@ let getTableData = async function () {
   })
   tabbleData.value = res.data.datasList.map(v => ({
     ...v,
-    test_result: v.test_result === 'pass' ? '成功' : '失败',
+    test_result: v.test_result === 'pass' ? '成功' : v.test_result==='failed'?'失败':'',
   }))
   pageConfig.total = res.data.total
 }

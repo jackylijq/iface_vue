@@ -26,6 +26,10 @@ $--link-disabled-font-color: $--color-text-placeholder !default;
 @import "~element-plus/theme-chalk/src/index";
 @import "~element-plus/theme-chalk/src/mixins/mixins";
 
+
+.el-table--striped .el-table__body tr{
+  background-color: #eee!important;
+}
 // button
 .el-button {
   padding: 8px 16px;

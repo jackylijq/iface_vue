@@ -4,7 +4,7 @@
       <el-input v-model="form.case_title" autocomplete="off" maxlength="20" />
     </el-form-item>
     <el-form-item prop="case_desc" label="用例描述">
-      <el-input v-model="form.case_desc" autocomplete="off" />
+      <el-input type="textarea" :rows="4" v-model="form.case_desc" autocomplete="off" />
     </el-form-item>
     <el-form-item prop="case_type" label="用例状态">
       <el-radio v-model="form.case_type" label="正常"></el-radio>
@@ -49,8 +49,6 @@
   </el-form>
 </template>
 <script setup>
-
-
 import { defineProps, defineExpose, ref, watchEffect, nextTick } from 'vue'
 import axios from '@/lin/plugin/axios'
 let props = defineProps({
@@ -88,7 +86,7 @@ let load = async function (node, resolve) {
       })),
     ]
     resolve(nodeData)
-    if (nodeData.length > 0 && (!props.form.id && !props.form.case_group_id)) {
+    if (nodeData.length > 0 && !props.form.id && !props.form.case_group_id) {
       props.form.case_group_id = nodeData[0].id
     }
   } else if (level === 1) {
@@ -122,12 +120,12 @@ let load = async function (node, resolve) {
 watchEffect(() => {
   nextTick(() => {
     if (props.form.remark) {
-      refEltree.value.$el.querySelector(".el-input__inner").value=props.form.remark
+      refEltree.value.$el.querySelector('.el-input__inner').value = props.form.remark
     }
   })
 })
 let handleChange = function () {
- props.form.remark = refEltree.value.getCurrentNode().label
+  props.form.remark = refEltree.value.getCurrentNode().label
 }
 
 let refForm = ref('refForm')

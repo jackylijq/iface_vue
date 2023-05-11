@@ -3,7 +3,7 @@
     <el-divider style="margin: 8px 0" />
     <el-descriptions class="border" direction="horizontal" :column="2">
       <el-descriptions-item label="用例名称">{{ form.case_title }}</el-descriptions-item>
-      <el-descriptions-item label="编号">{{ form.id }}</el-descriptions-item>
+      <el-descriptions-item label="编号">{{ form.case_id }}</el-descriptions-item>
       <el-descriptions-item label="接口地址">{{ form.request_url }}</el-descriptions-item>
       <el-descriptions-item label="请求方式">{{ form.request_method }}</el-descriptions-item>
       <el-descriptions-item label="执行结果">
