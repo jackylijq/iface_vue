@@ -184,7 +184,9 @@ onMounted(async () => {
         pageSize: scene_case_list.split(',').length,
       },
     })
-    form.tableData = res.data.datasList
+    form.tableData = scene_case_list.split(',').map(v => {
+      return res.data.datasList.find(e => v == e.id)
+    })
   }
 })
 
