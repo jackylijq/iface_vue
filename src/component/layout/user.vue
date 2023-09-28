@@ -48,6 +48,7 @@ import axios from 'lin/plugin/axios'
 import { mapActions, mapGetters } from 'vuex'
 import defaultAvatar from '@/assets/image/user/user.png'
 import Avatar from './avatar.vue'
+import emitter from 'lin/util/emitter'
 
 export default {
   name: 'User',
@@ -168,7 +169,9 @@ export default {
       this.$router.push('/center')
     },
     outLogin() {
+      emitter.emit('clearTap')
       this.loginOut()
+      window.sessionStorage.removeItem('userName')
       window.location.reload()
     },
     clearFileInput(ele) {

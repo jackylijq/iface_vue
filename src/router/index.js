@@ -49,8 +49,6 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // TODO: tab 模式重复点击验证
-
   // 权限验证
   if (store?.state && store?.getters) {
     const { permissions, user } = store.getters
@@ -70,6 +68,16 @@ router.beforeEach((to, from, next) => {
   }
 
   next()
+})
+
+router.afterEach((from, to) => {
+  // 缓存history实在router监听中变化
+  let history = JSON.parse(window.localStorage.getItem('history') || '[]')
+  if (history.some(v => v.path === to.fullPath)) {
+    to.meta.keepAlive = true
+  } else {
+    to.meta.keepAlive = false
+  }
 })
 
 export default router

@@ -85,6 +85,7 @@ export default {
       try {
         // 尝试获取当前用户信息
         const user = await UserModel.getPermissions()
+        window.sessionStorage.setItem('userName', user.username)
         store.dispatch('setUserAndState', user)
         store.commit('SET_USER_PERMISSIONS', user.permissions)
       } catch (e) {

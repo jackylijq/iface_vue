@@ -13,13 +13,17 @@
         <el-table :data="tableData" stripe style="width: 100%" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="55" />
           <el-table-column :show-overflow-tooltip="false" prop="id" label="计划id" width="100px" />
-          <el-table-column :show-overflow-tooltip="true" prop="plan_title" label="计划名称" min-width="150px" />
+          <el-table-column :show-overflow-tooltip="true" prop="plan_title" label="计划名称" min-width="150px">
+            <template #default="{ row }">
+              <a style="color: #3963bc" @click="seeDetail(row)">{{ row.plan_title }}</a>
+            </template>
+          </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="scene_case_num" label="用例数量" />
           <!-- <el-table-column :show-overflow-tooltip="true" prop="atom_case_num" label="原子用例数" /> -->
-          <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="创建人员" />
+          <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="更新人员" />
           <!-- <el-table-column :show-overflow-tooltip="true" prop="exe_result" label="执行结果" /> -->
           <!-- <el-table-column :show-overflow-tooltip="true" prop="exe_env" label="执行环境" /> -->
-          <el-table-column :show-overflow-tooltip="true" prop="update_time" label="创建时间" width="250px" />
+          <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" width="250px" />
           <el-table-column label="操作" width="300">
             <template #default="scope">
               <el-button type="primary" size="small" @click="handleEdit(scope)">编辑</el-button>
@@ -34,12 +38,13 @@
   </div>
 </template>
 <script setup>
-import { computed, h, onMounted, reactive, ref, unref } from 'vue'
+import { computed, h, onActivated, reactive, ref, unref } from 'vue'
 import axios from '@/lin/plugin/axios'
 import treeTable from '@/component/base/treeTable/treeTable.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import DialogExec from './dialogExec.vue'
 import router from '../../router'
+import Utils from 'lin/util/util'
 
 let currentNodeKey = ref('')
 let defaultExpandedKeys = ref([])
@@ -143,6 +148,17 @@ let searchConfig = computed(() => ({
     tableParams.value.plan_title = v
     getTableData()
   },
+
+  refresh() {
+    tableParams.value = {}
+    pageConfig.curPage = 1
+    pageConfig.pageSize = 10
+    currentNodeKey.value = ''
+    setTimeout(() => {
+      currentNodeKey.value = '-1'
+    }, 0)
+    getTableData()
+  },
 }))
 
 let tableParams = ref({})
@@ -152,7 +168,11 @@ let pageConfig = reactive({
   pageSize: 10,
   total: 0,
 })
-let getTableData = async function () {
+
+onActivated(() => {
+  getTableData()
+})
+let getTableData = Utils.debounce(async function () {
   let { curPage, pageSize } = unref(pageConfig)
   let { case_group_id } = unref(tableParams)
   let res = await axios({
@@ -167,7 +187,7 @@ let getTableData = async function () {
 
   tableData.value = res.data.datasList
   pageConfig.total = res.data.total
-}
+}, 300)
 
 const currentChange = function (v) {
   pageConfig.curPage = v
@@ -211,20 +231,28 @@ let handleExec = async function (rowList = []) {
 
     if (res.code === 200) {
       // 执行成功，跳转执行结果列表，携带批次id
-      router.push({
-        path: '/execresults/list',
-        query: {
-          batch_id: res.batch_id,
-          plan_id: rowList.map(row => row.id),
-        },
-      })
+      setTimeout(() => {
+        router.push({
+          path: '/execresults/list',
+          query: {
+            batch_id: res.batch_id,
+            // plan_id: rowList.map(row => row.id),
+          },
+        })
+      }, 1000)
     }
   })
 }
 
+let seeDetail = row => {
+  window.localStorage.setItem('test-plan-edit', JSON.stringify(row))
+  router.push({ path: '/testplans/edit', query: { detail: true } })
+  // router.push('/testplans/edit')
+}
+
 let handleEdit = ({ row }) => {
   window.localStorage.setItem('test-plan-edit', JSON.stringify(row))
-  router.push('/testplans/edit')
+  router.push({ path: '/testplans/edit', query: { detail: false } })
 }
 
 let handleDelete = async ({ row }) => {

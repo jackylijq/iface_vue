@@ -1,6 +1,12 @@
 <template>
   <div class="lin-search">
-    <el-input :placeholder="placeholder" clearable v-model="keyword" @keyup.enter.native="search" class="input-with-select">
+    <el-input
+      :placeholder="placeholder"
+      clearable
+      v-model="keyword"
+      @keyup.enter.native="search"
+      class="input-with-select"
+    >
       <template v-if="$slots.prepend" #prepend>
         <slot name="prepend"></slot>
       </template>
@@ -9,6 +15,8 @@
         <i class="el-input__icon el-icon-search" @click="search"></i>
       </template>
     </el-input>
+
+    <el-button @click="refresh"><i class="el-input__icon el-icon-refresh"></i></el-button>
   </div>
 </template>
 
@@ -32,12 +40,11 @@ export default {
     }
   },
   watch: {
-    defaultSearchValue:{
+    defaultSearchValue: {
       handler() {
         this.keyword = this.defaultSearchValue
       },
-      
-    }
+    },
   },
   mounted() {
     // if (this.defaultSearchValue) {
@@ -58,12 +65,20 @@ export default {
     search() {
       this.$emit('query', this.keyword)
     },
+    refresh() {
+      this.keyword=""
+      this.$emit('refresh')
+    }
   },
 }
 </script>
 <style lang="scss" scoped>
+.lin-search {
+  display: flex;
+}
 .lin-search :v-deep(.el-input__inner) {
   width: 150px;
+
   border-radius: 20px;
   transition: all 0.2s linear;
 
@@ -74,5 +89,10 @@ export default {
 }
 .lin-search :v-deep(.el-input__suffix) {
   cursor: pointer;
+}
+
+.lin-search ::v-deep(.el-button) {
+  height: 34px;
+  margin-left: 4px;
 }
 </style>

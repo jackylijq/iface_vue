@@ -5,7 +5,7 @@ const settingsRouter = {
   route: '/settings/list',
   filePath: 'view/settings/settings-list.vue',
   inNav: true,
-  icon: 'iconfont icon-iconset0103',
+  icon: 'el-icon-s-tools',
   order: 6,
 }
 

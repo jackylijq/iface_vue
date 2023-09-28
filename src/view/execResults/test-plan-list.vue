@@ -28,16 +28,24 @@
         </el-select>
       </template>
     </el-input>
+
+    <el-button @click="refresh"><i class="el-input__icon el-icon-refresh"></i></el-button>
   </div>
   <div>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column fixed type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
       <el-table-column fixed prop="batch_id" label="批次ID" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column :show-overflow-tooltip="true" fixed prop="plan_title" label="计划名称"> </el-table-column>
-      <el-table-column prop="exe_result" label="执行结果" :show-overflow-tooltip="true"> 
+      <el-table-column prop="exe_result" label="执行结果" :show-overflow-tooltip="true">
         <template #default="scope">
           <div style="display: flex; align-items: center">
-            <span style="margin-left: 10px" :style="{color:resultType[scope.row.exe_result]?resultType[scope.row.exe_result].classType:''}">{{ resultType[scope.row.exe_result]?resultType[scope.row.exe_result].name:resultType.otherList.name }}</span>
+            <span
+              style="margin-left: 10px"
+              :style="{ color: resultType[scope.row.exe_result] ? resultType[scope.row.exe_result].classType : '' }"
+              >{{
+                resultType[scope.row.exe_result] ? resultType[scope.row.exe_result].name : resultType.otherList.name
+              }}</span
+            >
           </div>
         </template>
       </el-table-column>
@@ -53,16 +61,19 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      v-model:currentPage="currentPage"
-      v-bind="{ ...computedPageConfig }"
-      @current-change="currentChange"
-      @size-change="sizeChange"
-    />
+    <div class="paginatPlace">
+      <el-pagination
+        v-model:currentPage="currentPage"
+        v-bind="{ ...computedPageConfig }"
+        layout="total, prev, pager, next, jumper"
+        @current-change="currentChange"
+        @size-change="sizeChange"
+      />
+    </div>
   </div>
 </template>
 <script>
-import { ref, unref, computed, onMounted } from 'vue'
+import { ref, unref, computed, onMounted,onActivated } from 'vue'
 import axios from '@/lin/plugin/axios'
 import { cloneDeep, throttle, debounce } from 'lodash'
 import router from '../../router'
@@ -77,13 +88,17 @@ export default {
       curPage: 1,
       pageSize: 10,
     })
-    const resultType = ref({pass:{name:'执行成功',value:'pass',classType:'#8af039'},failed:{name:'执行失败',value:'failed',classType:'#d4001a'},otherList:{name:'未执行',value:'',classType:''}})
+    const resultType = ref({
+      pass: { name: '执行成功', value: 'pass', classType: '#8af039' },
+      failed: { name: '执行失败', value: 'failed', classType: '#d4001a' },
+      otherList: { name: '未执行', value: '', classType: '' },
+    })
     const totalConfig = ref(0)
     const tableParams = ref({
       batch_id: router.currentRoute.value.query.batch_id,
       plan_id: router.currentRoute.value.query.plan_id,
     })
-    onMounted(() => {
+    onActivated(() => {
       init()
     })
     const indexMethod = function (i) {
@@ -135,6 +150,14 @@ export default {
     const openRow = function (data) {
       context.emit('changePage', data.row)
     }
+
+    const refresh = function () {
+      searchData.value = ''
+      tableParams.value = {}
+      pageConfig.value.curPage = 1
+      pageConfig.value.pageSize = 10
+      init()
+    }
     return {
       tableData,
       select,
@@ -145,7 +168,8 @@ export default {
       search,
       sizeChange,
       currentChange,
-      resultType
+      resultType,
+      refresh,
     }
   },
 }
@@ -161,9 +185,15 @@ export default {
   border: 1px solid var(--el-border-color);
 }
 .searchInput {
-  width: 350px;
+  display: flex;
+  width: 400px;
   float: right;
   margin: 8px 0px;
+
+  ::v-deep(.el-button) {
+    height: 34px;
+    margin-left: 4px;
+  }
 }
 .searchForm {
   ::v-deep {
@@ -177,5 +207,9 @@ export default {
       padding: 8px;
     }
   }
+}
+.paginatPlace {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

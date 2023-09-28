@@ -6,7 +6,7 @@ const atomicCasesRouter = [
     route: '/atomiccase/list',
     filePath: 'view/atomicCases/atomic-cases-list.vue',
     inNav: true,
-    icon: 'iconfont icon-iconset0103',
+    icon: 'el-icon-goods',
     order: 2,
   },
   {
@@ -17,8 +17,11 @@ const atomicCasesRouter = [
     route: '/atomiccase/add',
     filePath: 'view/atomicCases/atomic-cases-addnew.vue',
     inNav: false,
-    icon: 'iconfont icon-iconset0103',
+    icon: 'el-icon-goods',
     order: 2,
+    meta:{
+      keepAlive:true
+    }
   },
   {
     title: '原子用例编辑',
@@ -28,9 +31,33 @@ const atomicCasesRouter = [
     route: '/atomiccase/edit',
     filePath: 'view/atomicCases/atomic-cases-editnew.vue',
     inNav: false,
+    icon: 'el-icon-goods',
+    order: 2,
+    meta:{
+      keepAlive:true
+    }
+  },
+  {
+    title: '原子用例详情',
+    type: 'view',
+    name: Symbol('atomiccase-detail'),
+    activePath: '/atomiccase/list',
+    route: '/atomiccase/detail',
+    filePath: 'view/atomicCases/atomic-row-detail.vue',
+    inNav: false,
     icon: 'iconfont icon-iconset0103',
     order: 2,
   },
+  {
+    title: '原子用例测试记录',
+    name: Symbol('atomic-test-record'),
+    activePath: '/atomiccase/list',
+    route: '/atomiccase/record',
+    filePath: 'view/testRecord/AtomicRecord.vue',
+    inNav: false,
+    icon: 'el-icon-goods',
+    order: 2,
+  }
 ]
 
 export default atomicCasesRouter

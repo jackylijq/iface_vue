@@ -165,6 +165,12 @@ export default {
     },
   },
 
+  created() {
+    this.$nextTick(() => {
+      this.changeSlidebarState()
+    })  
+  },
+
   beforeUnmount() {
     emitter.off('noReuse')
     emitter.off('hasReuse')

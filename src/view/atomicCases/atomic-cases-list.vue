@@ -25,22 +25,30 @@
             </template>
           </el-table-column>
 
-          <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称">
+            <template #default="scope">
+              <a style="color: #3963bc" @click="toRowDetail(scope)">{{ scope.row.case_title }}</a>
+            </template>
+          </el-table-column>
           <!-- <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" width="150px" />
           <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" width="150px">
-            <template #default="{row}">
-              <span :class="{'--pass':row.case_status==='pass','--fail':row.case_status==='failed'}">{{ row.case_status==="failed"?"测试失败":row.case_status==="pass"?"测试成功":"未测试" }}</span>
+            <template #default="{ row }">
+              <span :class="{ '--pass': row.case_status === 'pass', '--fail': row.case_status === 'failed' }">{{
+                row.case_status === 'failed' ? '测试失败' : row.case_status === 'pass' ? '测试成功' : '未测试'
+              }}</span>
             </template>
           </el-table-column>
           <!-- <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" /> -->
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
+          <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="更新人员" />
           <el-table-column prop="address" label="操作" width="300">
             <template #default="scope">
               <el-button type="primary" text size="small" @click.stop="testClick(scope)">测试</el-button>
               <!-- <el-button size="small" @click.stop="copyClick(scope)">复制</el-button> -->
               <el-button size="small" @click.stop="editClick(scope)">编辑</el-button>
               <el-button type="danger" size="small" @click.stop="delClick(scope)">删除</el-button>
+              <el-button size="small" type="" @click="toRecord(scope)">测试记录</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -88,7 +96,7 @@
               row-key="name"
             >
               <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" />
-            <el-table-column :show-overflow-tooltip="true" prop="type" label="参数类型" />
+              <el-table-column :show-overflow-tooltip="true" prop="type" label="参数类型" />
               <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
               <el-table-column :show-overflow-tooltip="true" prop="t3" label="示例" />
               <el-table-column :show-overflow-tooltip="true" prop="description" label="备注" />
@@ -118,7 +126,7 @@
 <script>
 import treeTable from '@/component/base/treeTable/treeTableTab.vue'
 import axios from '@/lin/plugin/axios'
-import { ref, unref, computed, nextTick, watch, reactive, onMounted } from 'vue'
+import { ref, unref, computed, nextTick, watch, reactive, onMounted, onActivated } from 'vue'
 import router from '../../router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Utils from 'lin/util/util'
@@ -312,19 +320,36 @@ export default {
 
         getTableData()
       },
+
+      refresh() {
+        pageConfig.value.curPage = 1
+        pageConfig.value.pageSize = 10
+        tableParams.value = {}
+        currentNodeKey.value = ''
+        setTimeout(() => {
+          currentNodeKey.value = '-1'
+        }, 0)
+        getTableData()
+      },
     }))
+
+
+    onActivated(() => {
+      getTableData();
+    })
+    
 
     onMounted(() => {
       // 设置状态
       let statusInfo = JSON.parse(window.sessionStorage.getItem('atomic-cases-list_status') || '{}')
       nextTick(() => {
-        if (statusInfo.currentNodeKey && statusInfo.currentNodeKey!="-1") {
+        if (statusInfo.currentNodeKey && statusInfo.currentNodeKey != '-1') {
           let [project_id, group_id, iface_id] = statusInfo.currentNodeKey.split('-')
           tableParams.value.iface_id = iface_id
           tableParams.value.group_id = group_id
           tableParams.value.project_id = project_id
 
-          currentNodeKey.value = "-1"
+          currentNodeKey.value = '-1'
           defaultExpandedKeys.value = []
           setTimeout(() => {
             if (statusInfo.defaultExpandedKeys) defaultExpandedKeys.value = statusInfo.defaultExpandedKeys
@@ -332,10 +357,30 @@ export default {
             window.sessionStorage.removeItem('atomic-cases-list_status')
             levelData.level = 3
             getIfaceDetail(iface_id)
-          },100)
+          }, 100)
         }
       })
     })
+
+    // 点击用例名称
+    const toRowDetail = function(scope) {
+      const params = {
+        ...scope.row,
+        defaultExpandedKeys: unref(this.defaultExpandedKeys),
+        currentNodeKey: unref(this.currentNodeKey),
+      }
+      params.req_body = JSON.stringify(params.req_body)
+      params.res_body = JSON.stringify(params.res_body)
+      // params.case_status = JSON.stringify(params.case_status);
+      params.case_variable = JSON.stringify(params.case_variable)
+      params.header = JSON.stringify(params.header)
+      params.request_param = JSON.stringify(params.request_param)
+      params.response = JSON.stringify(params.response)
+      params.result_check = JSON.stringify(params.result_check)
+      params.result_variable = JSON.stringify(params.result_variable)
+      params.generic_variables = JSON.stringify(params.generic_variables || {})
+      router.push({path: '/atomiccase/detail', query: params })
+    }
 
     // 点击创建
     const btnCreate = function () {
@@ -351,7 +396,7 @@ export default {
       }
       params.req_body = JSON.stringify(params.req_body)
       params.res_body = JSON.stringify(params.res_body)
-      // params.case_status = JSON.stringify(params.case_status);
+      params.generic_variables = JSON.stringify(params.generic_variables || {});
       params.case_variable = JSON.stringify(params.case_variable)
       params.header = JSON.stringify(params.header)
       params.request_param = JSON.stringify(params.request_param)
@@ -416,6 +461,10 @@ export default {
         getTableData()
       }
     }
+    // 点击测试记录按钮
+    const toRecord = scope => {
+      router.push({ path: '/atomiccase/record', query: { id: scope.row.id, case_title: scope.row.case_title, case_id: scope.row.case_id } })
+    }
 
     // 点击删除按钮
     const delClick = async function (scope) {
@@ -424,14 +473,14 @@ export default {
       params.test_case = [scope.row.id]
 
       ElMessageBox.confirm(`是否确认删除${scope.row.iface_name}?`, '提示', {
-        type:'warning'
-      }).then(async() => {
+        type: 'warning',
+      }).then(async () => {
         let res = await axios({
-          url: "/iftest/case/standStom/del",
-          method: "POST",
+          url: '/iftest/case/standStom/del',
+          method: 'POST',
           data: {
-            id:scope.row.id
-          }
+            id: scope.row.id,
+          },
         })
         ElMessage[res.code == 200 ? 'success' : 'error'](res.message)
         if (res.code == 200) {
@@ -487,7 +536,7 @@ export default {
             .replace(RegExp('[)]', 'g'), '')
             .replace(RegExp('ObjectId', 'g'), '')
           queryTableData.value = JSON.parse('[' + req_bodyJson + ']')
-          queryTableData.value.forEach(item=>item.description = item.desc)
+          queryTableData.value.forEach(item => (item.description = item.desc))
         } else {
           let queryJson = JSON.parse(req_body.replace(/[\r|\n|\t]/g, ''))
           if (queryJson.items) {
@@ -581,6 +630,7 @@ export default {
         ...unref(tableParams),
         ...unref(pageConfig),
       }
+
       if (!data.project_id || data.project_id === '-1') delete data.project_id
       if (!data.iface_id) delete data.iface_id
 
@@ -589,6 +639,8 @@ export default {
         method: 'post',
         url,
         data,
+      }).catch(err => {
+        console.log(err);
       })
 
       let { datasList, curPage, pageSize, total } = res.data
@@ -666,6 +718,8 @@ export default {
       getIfaceDetail,
       change,
       objToTree,
+      toRowDetail,
+      toRecord
     }
   },
 }

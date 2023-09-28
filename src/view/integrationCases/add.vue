@@ -1,9 +1,9 @@
 <template>
   <div class="integration-cases-add">
     <header class="integration-cases-add-header">
-      <span class="float-l"><!-- <i class="iconfont icon-fanhui"></i> 返回--></span>
-      <span @click="handleSave"> <i class="iconfont icon-moshubang"></i> 保存</span>
-      <span @click="handleClear"> <i class="iconfont icon-shanchu"></i> 清空</span>
+      <!-- <span class="float-l"><i class="iconfont icon-fanhui"></i> 返回</span> -->
+      <span  class="float-l" @click="handleSave"> <i class="iconfont icon-moshubang"></i> 保存</span>
+      <!-- <span @click="handleClear"> <i class="iconfont icon-shanchu"></i> 清空</span> -->
       <span class="float-r" @click="baseInfoShow = true">{{ data.case_title || '基础信息' }}</span>
     </header>
 
@@ -106,6 +106,7 @@ let handleSave = async function () {
       case_title: e.case_title,
       case_variable: e.case_variable,
       result_variable: e.result_variable,
+      case_desc: e.case_desc
     }
   })
 
@@ -148,7 +149,7 @@ let handleClear = function () {
     height: 50px;
     line-height: 50px;
     display: flex;
-    padding: 0 10px;
+    padding: 0 15px;
 
     span {
       font-size: 14px;

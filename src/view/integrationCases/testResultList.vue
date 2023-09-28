@@ -89,7 +89,7 @@ const pageConfig = reactive({
   pageSize: 10,
   total: 0,
 })
-let tabbleData = ref([{}])
+let tabbleData = ref([])
 
 // 获取测试详情
 let getDetailData = async function () {
@@ -103,7 +103,7 @@ let getDetailData = async function () {
     },
   })
 
-  testInfo.value = res.data.datasList[0]
+  testInfo.value = res.data.datasList[0] || {}
 }
 
 let getTableData = async function () {

@@ -48,11 +48,14 @@ export default {
   transform: translateY(21px);
 }
 
-.iconfont {
-  margin-right: 10px;
+i {
+  margin-right: 10px!important;
   margin-left: 5px;
   color: $sub-menu-title;
   height: $menu-item-height;
+  line-height: $menu-item-height;
+  font-size: 16px!important;
+  width: 16px!important;
 }
 
 .title {

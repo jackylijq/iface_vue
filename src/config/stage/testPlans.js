@@ -6,7 +6,7 @@ export default [
     route: '/testplans/list',
     filePath: 'view/testPlans/index.vue',
     inNav: true,
-    icon: 'iconfont icon-iconset0103',
+    icon: 'el-icon-document',
     order: 3,
   },
   {
@@ -17,7 +17,7 @@ export default [
     route: '/testplans/create',
     filePath: 'view/testPlans/create.vue',
     inNav: false,
-    icon: 'iconfont icon-iconset0103',
+    icon: 'el-icon-document',
     order: 3,
   },
   {
@@ -28,7 +28,7 @@ export default [
     route: '/testplans/edit',
     filePath: 'view/testPlans/create.vue',
     inNav: false,
-    icon: 'iconfont icon-iconset0103',
+    icon: 'el-icon-document',
     order: 3,
   },
 ]

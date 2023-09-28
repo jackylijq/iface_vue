@@ -17,6 +17,9 @@
         <el-form-item label="接口标题">
           <el-input disabled v-model="formData.case_title" />
         </el-form-item>
+        <el-form-item label="接口描述">
+            <el-input @blur="updateDetail('case_desc')" v-model="formData.case_desc" />
+          </el-form-item>
         <el-form-item label="用例参数">
           <el-input
             type="textarea"
@@ -44,6 +47,9 @@
         <el-form-item label="接口标题">
           <el-input disabled v-model="formData.case_title" />
         </el-form-item>
+        <el-form-item label="接口描述">
+            <el-input @blur="updateDetail('case_desc')" v-model="formData.case_desc" />
+          </el-form-item>
         <el-form-item label="结果变量">
           <el-input
             type="textarea"
@@ -66,11 +72,13 @@ let props = defineProps({
   },
 })
 watchEffect(() => {
-  let { id, request_url, request_method, case_title, case_variable, result_variable } = props.caseInfo
+  let { id, request_url, request_method, case_title, case_variable, result_variable, case_desc } = props.caseInfo
+  console.log(props.caseInfo)
   nextTick(() => {
     formData.request_method = request_method || ''
     formData.case_title = case_title || ''
     formData.request_url = request_url || ''
+    formData.case_desc = case_desc || ''
     formData.case_variable = JSON.stringify(case_variable, null, 2)
     formData.result_variable = JSON.stringify(result_variable, null, 2)
 
@@ -86,6 +94,7 @@ let formData = reactive({
   request_url: '',
   request_method: '',
   case_title: '',
+  case_detail: '',
   case_variable: '',
   result_variable: '',
 })
@@ -104,5 +113,9 @@ let updateInfo = function (key) {
   } catch (error) {
     ElMessage.error(`${strMap[key]}不能被格式化`)
   }
+}
+const updateDetail = key => {
+  const dataString = formData[key]
+  emits('update:caseInfo', { key, data: dataString })
 }
 </script>

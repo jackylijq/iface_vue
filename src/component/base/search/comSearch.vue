@@ -4,7 +4,7 @@
       {{ item.label }}
     </el-button>
 
-    <Search @query="doQuery" :defaultSearchValue="defaultSearchValue">
+    <Search @query="doQuery" @refresh="doRefresh" :defaultSearchValue="defaultSearchValue">
       <template v-if="$slots.prepend" #prepend> <slot name="prepend"></slot> </template
     ></Search>
   </div>
@@ -43,9 +43,15 @@ export default {
     },
     query: {
       type: Function,
-      defualt() {
-        console.log('query方法未定义')
+      default() {
+        console.warn('query方法未定义')
       },
+    },
+    refresh: {
+      type: Function,
+      default: function () {
+        console.warn('refresh方法未定义')
+      }
     },
   },
   components: { Search },
@@ -59,10 +65,14 @@ export default {
     const doQuery = function () {
       props.query(...arguments)
     }
+    const doRefresh = function () {
+      props.refresh(...arguments)
+    }
     return {
       computedButtonList,
       btnClick,
       doQuery,
+      doRefresh,
     }
   },
 }

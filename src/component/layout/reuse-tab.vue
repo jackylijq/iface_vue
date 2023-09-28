@@ -61,19 +61,23 @@ export default {
     }
   },
   watch: {
-    $route(to) {
-      // 对路由变化作出响应...
-      const { histories } = this
-      const flag = histories.find(item => item.path === to.fullPath)
-      if (flag) {
-        return
-      }
+    $route: {
+      handler(to) {
+        // 对路由变化作出响应...
+        const { histories } = this
+        const flag = histories.find(item => item.path === to.fullPath)
+        if (flag) {
+          return
+        }
 
-      const ele = {}
-      ele.stageId = to.name
-      ele.path = to.fullPath
-      ele.routePath = to.matched[to.matched.length - 1].path
-      this.histories = [ele, ...histories]
+        const ele = {}
+        ele.stageId = to.name
+        ele.path = to.fullPath
+        ele.routePath = to.matched[to.matched.length - 1].path
+        this.histories = [ele, ...histories]
+      },
+      deep: true,
+      immediate:true
     },
     loggedIn(val) {
       if (val) {
@@ -93,6 +97,7 @@ export default {
       this.init()
     },
     histories(arr) {
+      window.localStorage.setItem('history', JSON.stringify(this.histories))
       if (arr.length < 2) {
         emitter.emit('noReuse')
       } else {
@@ -116,8 +121,11 @@ export default {
     },
     ...mapGetters(['getStageByRoute', 'getStageByName', 'stageList']),
   },
-  mounted() {
+
+  created() {
     this.init()
+  },
+  mounted() {
     emitter.on('clearTap', () => {
       this.histories = []
     })

@@ -1,10 +1,11 @@
 <template>
   <section class="container">
     <div class="wrapper" id="wrapper">
-      <router-view v-slot="{ Component }" :key="$route.fullPath">
-        <transition appear name="fade-transform" mode="out-in">
-          <component :is="Component" />
-        </transition>
+      <router-view v-slot="{ Component }">
+        <keep-alive>
+          <component :is="Component" :key="$route.fullPath" v-if="$route.meta.keepAlive!==false" />
+        </keep-alive>
+        <component :is="Component" :key="$route.fullPath" v-if="$route.meta.keepAlive===false" />
       </router-view>
     </div>
   </section>

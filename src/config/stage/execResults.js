@@ -5,7 +5,7 @@ const execResultsRouter = {
   route: '/execresults/list',
   filePath: 'view/execResults/exec-results-list.vue',
   inNav: true,
-  icon: 'iconfont icon-iconset0103',
+  icon: 'el-icon-tickets',
   order: 5,
 }
 

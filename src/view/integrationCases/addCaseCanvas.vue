@@ -151,7 +151,7 @@ let updateCaseInfo = ({ key, data }) => {
 
       > figure {
         display: inherit;
-        width: 72px;
+        width: 142px;
         flex-direction: column;
         align-items: center;
         cursor: pointer;
@@ -178,7 +178,7 @@ let updateCaseInfo = ({ key, data }) => {
         figcaption {
           margin-top: 4px;
           font-size: 12px;
-          max-width: 72px;
+          max-width: 140px;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
@@ -187,7 +187,7 @@ let updateCaseInfo = ({ key, data }) => {
       .el-icon-close {
         position: absolute;
         top: -5px;
-        left: 58px;
+        left: 90px;
         cursor: pointer;
         border-radius: 50%;
         font-size: 14px;
@@ -205,9 +205,9 @@ let updateCaseInfo = ({ key, data }) => {
       > .line-before {
         position: absolute;
         z-index: 5;
-        left: 70px;
-        right: 0px;
-        top: 33px;
+        left: 110px;
+        right: -30px;
+        top: 32px;
         height: 2px;
         background-color: #3c63cc;
 

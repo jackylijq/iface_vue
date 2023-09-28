@@ -89,6 +89,34 @@
             </template>
           </el-table-column>
         </el-table>
+
+        <div class="fun-var applyTitle">函数变量:  <el-button @click="funVarVisiable=true">添加</el-button> </div>
+        <el-table :data="funcData" :default-expand-all="true" stripe class="headerTable" row-key="index" :tree-props="{children: 'children'}">
+          <el-table-column type="index" width="80" label="编号" />
+          <el-table-column :show-overflow-tooltip="true" prop="en_name" label="英文名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="cn_name" label="中文名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="variable_name" label="变量名称">
+            <template v-slot="scope">
+              <el-input v-model="scope.row.variable_name" size="small"></el-input>
+            </template>
+          </el-table-column>
+          <el-table-column :show-overflow-tooltip="true" prop="fun_param" label="函数参数">
+            <template v-slot="scope">
+              <el-input v-model="scope.row.fun_param" size="small"></el-input>
+            </template>
+          </el-table-column>
+
+          <el-table-column :show-overflow-tooltip="true" prop="preview" label="预览值" />
+       
+          <el-table-column :show-overflow-tooltip="true" prop="" label="">
+            <template v-slot="scope">
+              <i class="el-icon-view" style="font-size:20px;margin:0 18px;cursor: pointer;" @click="previewHeaderInfo(scope)"></i>
+              <i class="el-icon-delete" style="font-size:20px;cursor: pointer;" @click="deleteFunInfo(scope)" v-show="scope.row.name!=='Content-Type'&&scope.row.name!=='username'&&scope.row.name!=='password'"></i>
+            </template>
+          </el-table-column>
+        </el-table>
+
+
         <el-button class="next" @click="changeStep('2','1')" type="primary">下一步</el-button>
       </div>
       <div class="stepTwo" v-show="step == '2'">
@@ -111,7 +139,11 @@
                 </template>
               </el-table-column>
               <el-table-column :show-overflow-tooltip="true" prop="queryName" label="参数化名称"/>
-              <el-table-column :show-overflow-tooltip="true" prop="queryValue" label="参数化值"/>
+              <el-table-column :show-overflow-tooltip="true" prop="queryValue" label="参数化值">
+                <template v-slot="scope">
+                  <el-input v-model="scope.row.queryValue" size="small"></el-input>
+                </template>
+              </el-table-column>
             </el-table>
             <div class="headerTitle">响应参数</div>
             <el-table :data="backTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
@@ -393,7 +425,14 @@
 
       </div>
       
-     
+     <AtomicCasesFun 
+     :value="funVarVisiable" 
+     :funcData="funcData"
+     @input="
+      val => {
+        funVarVisiable = val
+      }
+    " @save="handleSaveFunList" />
   </div>
 </template>
 <script>
@@ -405,13 +444,15 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import emitter from 'lin/util/emitter'
 import JsonEditorVue from 'json-editor-vue3'
 import store from '@/store';
-
+import AtomicCasesFun from "./atomic-cases-fun.vue"
 export default {
-components: { JsonEditorVue },
+components: { JsonEditorVue,AtomicCasesFun },
 setup() {
   const ruleFormRef = ref()
   let queryTableData = ref([])
   let applyTableData = ref([])
+  let funcData = ref([])
+  let funVarVisiable = ref(false)
   let backTableData = ref([])
   let checkResponseTableData = ref([])
   let checkQueryTableData = ref([])
@@ -489,6 +530,27 @@ setup() {
         })
         return false
       }
+
+      // 验证变量名是否重复
+      let funObj = {}
+      for (let ele of funcData.value) {
+        if (funObj[ele.variable_name] > 0) {
+          ElMessage({
+            type:"error",
+            message:`变量名称 ${ele.variable_name} 重复`
+          })
+          return false
+        } else {
+          funObj[ele.variable_name]=1
+        } 
+      }
+
+      formData.value.generic_variables = funcData.value.reduce((a, b) => ({
+        ...a,
+        [b.variable_name]:{...unref(b),fun_param:JSON.parse(unref(b).fun_param)}
+      }), { })
+
+
       // else if(!formData.value.case_desc) {
       //   ElMessage({
       //     message: '请输入用例描述',
@@ -496,8 +558,10 @@ setup() {
       //   })
       //   return false
       // }
+      console.log('0', queryTableData)
       addBaseInfo(queryTableData.value,'query')
       addBaseInfo(backTableData.value,'response')
+      console.log('1', queryTableData)
       if(from == 3) {
         checkSqlList.value = []
         checkedList.value = []
@@ -625,7 +689,7 @@ setup() {
   }
   //全景-高级切换
   const handleClick = (tab, event) => {
-      data.activeName = tab.index
+    data.activeName = tab.index
       if(data.activeName == '1') {
         requestJson.value = firstTrans(queryTableData.value,'query')
         responseJson.value = firstTrans(backTableData.value,'response')
@@ -680,6 +744,7 @@ setup() {
    
 
   }
+  
   //全景转高级
   const firstTrans = function (val,type) {
     let obj = {}
@@ -691,7 +756,7 @@ setup() {
         if(item.valueType=='object') {
           obj[item.name] = {}
         }else if(item.valueType == 'null' ){
-          obj[item.name] = ''
+          obj[item.name] = null
         }else if(item.valueType == 'number') {
          if(item.value == undefined) {
           obj[item.name] = null
@@ -702,7 +767,7 @@ setup() {
           obj[item.name] = []
         }else if(item.valueType == 'boolean'){
           obj[item.name] = item.value
-        }else{
+        } else {
           obj[item.name] = item.value?item.value:''
         }
         if(typeof item.value === 'number'&&item.value == 0) {
@@ -771,8 +836,8 @@ setup() {
         }else {
           arr.push({
             name:key,
-            valueType:'string',
-            value:""
+            valueType:'null',
+            value:null
           })
         }
       }else if (typeof obj[key] == 'number' && obj[key] ==0) {
@@ -891,7 +956,7 @@ setup() {
     val.forEach((item,index) => {
         if(item.checked) {
           item.queryName = item.name
-          item.queryValue = '$'+ item.name
+          item.queryValue = `\${${item.name}}`
         }else {
           delete item.queryName
           delete item.queryValue
@@ -1171,6 +1236,13 @@ setup() {
         headerObj[el.name] = el.value || ''
       }
     })
+    let changeValue = checkResponseTableData.value.filter(item => item.name == "code").map(item => item.checkValue).join(",")
+    if(changeValue == "") {
+      ElMessage.error('code值不能为空')
+      // alert('code值不能为空');
+      return;
+    }
+    responseJson.value.code = changeValue
     let param = {
       iface_id:tableParams.iface_id,
       id:tableParams.id,
@@ -1185,7 +1257,8 @@ setup() {
       case_variable:case_variable.value,
       result_variable:result_variable.value,
       result_check:result_check,
-      edit_uid :store.getters.user.id
+      edit_uid :window.sessionStorage.getItem('userName')||"default",
+      generic_variables:formData.value.generic_variables
     }
     console.log(param,'param')
     const res = await axios({
@@ -1268,12 +1341,13 @@ setup() {
       }
     })
   }
-  function addCaseVariable (val,key) {
-    val.forEach(item => {
+  function addCaseVariable (data,key,value) {
+    data.forEach(item => {
       if(item.name == key) {
         item.checked = true
         item.queryName = key
-        item.queryValue = '$'+key
+        item.queryValue =  value || `\${${key}}`
+        
       }else {
         if(item.children) {
           addCaseVariable(item.children,key)
@@ -1312,6 +1386,12 @@ setup() {
       formData.value.version = tableParams.version
       formData.value.case_type = tableParams.case_type
       formData.value.wait_time = tableParams.wait_time
+
+      funcData.value = Object.values(JSON.parse(tableParams.generic_variables)).map(v=>({
+        ...v,
+        fun_param:JSON.stringify(v.fun_param)
+      }))
+      
       applyTableData.value = []
       for(var key in tableParams.header) {
         applyTableData.value.push({
@@ -1331,7 +1411,6 @@ setup() {
       headerBaseInfo.value = applyTableBaseData
       applyTableData.value.forEach(i =>{
         let sameItem = headerBaseInfo.value.find(e =>{return e.name == i.name})
-        console.log(sameItem,'sameItem')
         if(sameItem) {
           i.required = sameItem.required
         }
@@ -1339,7 +1418,7 @@ setup() {
       queryTableData.value = backTrans(tableParams.request_param,'query')
       backTableData.value = backTrans(tableParams.response,'response')
       for (var key in tableParams.case_variable) {
-        addCaseVariable(queryTableData.value,key)
+        addCaseVariable(queryTableData.value,key,tableParams.case_variable[key])
       }
       for (var key in tableParams.result_variable) {
         let arr = tableParams.result_variable[key].replace(/\[|]/g,'').replace(RegExp("0", "g"),'').split('.')
@@ -1419,6 +1498,30 @@ setup() {
     })
 
   }
+
+  const previewHeaderInfo = async function ({row,$index}) {
+    let res = await axios({
+      method: "post",
+      url:"/iftest/functions/varPreview",
+      data:{
+        pageSize: 10,
+        en_name:row.en_name,
+        ...row,
+        fun_param:JSON.parse(row.fun_param)
+      }
+    })
+    ElMessage({
+      type: res.code === 200 ? 'success' : 'error',
+      message: res.message,
+    })
+
+    row.preview = res.data.variable_value
+  }
+
+  let deleteFunInfo = function ({ $index }) {
+    funcData.value.splice($index,1)
+  }
+  
   const searchList = async function () {
     let param = {
       curPage:curPage.value,
@@ -1487,18 +1590,28 @@ setup() {
       }
     })
   }
+
+
+  let handleSaveFunList = function (val) {
+    funcData.value.push(...val.selections);
+  }
+
   onMounted(()=>{
     getEditData()
     getIfaceDetail(tableParams.iface_id)
     getSqlName(tableParams.project_id)
     getCheckBaseInfo()
   })
+  console.log(queryBaseInfo)
   return {
     ruleFormRef,
     formData,
     rules,
     onSubmit,
     applyTableData,
+    funcData,
+    funVarVisiable,
+    handleSaveFunList,
     headerTableData,
     backTableData,
     change,
@@ -1547,6 +1660,8 @@ setup() {
     headerBaseInfo,
     addHeaderInfo,
     deleteHeaderInfo,
+    previewHeaderInfo,
+    deleteFunInfo,
     checkForm,
     checkFuncTableData,
     checkFuncSearchData,
@@ -1605,6 +1720,10 @@ setup() {
     font-size: 14px;
     padding: 10px 0 10px 30px;
     font-weight: 700;
+  }
+
+  .fun-var{
+    margin-top: 10px;
   }
   .headerTable{
     width: 90%;

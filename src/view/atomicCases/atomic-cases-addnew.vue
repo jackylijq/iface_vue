@@ -89,6 +89,33 @@
             </template>
           </el-table-column>
         </el-table>
+
+        
+        <div class="fun-var applyTitle">函数变量:  <el-button @click="funVarVisiable=true">添加</el-button> </div>
+        <el-table :data="funcData" :default-expand-all="true" stripe class="headerTable" row-key="index" :tree-props="{children: 'children'}">
+          <el-table-column type="index" width="80" label="编号" />
+          <el-table-column :show-overflow-tooltip="true" prop="en_name" label="英文名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="cn_name" label="中文名称" />
+          <el-table-column :show-overflow-tooltip="true" prop="variable_name" label="变量名称">
+            <template v-slot="scope">
+              <el-input v-model="scope.row.variable_name" size="small"></el-input>
+            </template>
+          </el-table-column>
+          <el-table-column :show-overflow-tooltip="true" prop="fun_param" label="函数参数">
+            <template v-slot="scope">
+              <el-input v-model="scope.row.fun_param" size="small"></el-input>
+            </template>
+          </el-table-column>
+
+          <el-table-column :show-overflow-tooltip="true" prop="preview" label="预览值" />
+       
+          <el-table-column :show-overflow-tooltip="true" prop="" label="">
+            <template v-slot="scope">
+              <i class="el-icon-view" style="font-size:20px;margin:0 18px;cursor: pointer;" @click="previewHeaderInfo(scope)"></i>
+              <i class="el-icon-delete" style="font-size:20px;cursor: pointer;" @click="deleteFunInfo(scope)" v-show="scope.row.name!=='Content-Type'&&scope.row.name!=='username'&&scope.row.name!=='password'"></i>
+            </template>
+          </el-table-column>
+        </el-table>
         <el-button class="next" @click="changeStep('2','1')" type="primary">下一步</el-button>
       </div>
       <div class="stepTwo" v-show="step == '2'">
@@ -111,7 +138,11 @@
                 </template>
               </el-table-column>
               <el-table-column :show-overflow-tooltip="true" prop="queryName" label="参数化名称"/>
-              <el-table-column :show-overflow-tooltip="true" prop="queryValue" label="参数化值"/>
+              <el-table-column :show-overflow-tooltip="true" prop="queryValue" label="参数化值">
+                <template v-slot="scope">
+                  <el-input v-if="scope.row.checked" v-model="scope.row.queryValue" size="small"></el-input>
+                </template>
+              </el-table-column>
             </el-table>
             <div class="headerTitle">响应参数</div>
             <el-table :data="backTableData" :default-expand-all="true" stripe class="headerTable" row-key="name" :tree-props="{children: 'children'}">
@@ -413,6 +444,15 @@
           <el-button @click="changeStep('2','3')">上一步</el-button>
         </div>
       </div>
+
+      <AtomicCasesFun 
+     :value="funVarVisiable" 
+     :funcData="funcData"
+     @input="
+      val => {
+        funVarVisiable = val
+      }
+    " @save="handleSaveFunList" />
   </div>
 </template>
 <script>
@@ -423,13 +463,15 @@ import axios from '@/lin/plugin/axios'
 import { ElMessage,ElMessageBox } from 'element-plus'
 import emitter from 'lin/util/emitter'
 import JsonEditorVue from 'json-editor-vue3'
-
+import AtomicCasesFun from "./atomic-cases-fun.vue"
 export default {
-components: {JsonEditorVue },
+components: {JsonEditorVue,AtomicCasesFun },
 setup() {
   const ruleFormRef = ref()
   let queryTableData = ref([])
   let applyTableData = ref([])
+  let funcData = ref([])
+  let funVarVisiable = ref(false)
   let backTableData = ref([])
   let checkResponseTableData = ref([])
   let checkQueryTableData = ref([])
@@ -537,6 +579,25 @@ setup() {
         })
         return false
       }
+
+      // 验证变量名是否重复
+      let funObj = {}
+      for (let ele of funcData.value) {
+        if (funObj[ele.variable_name] > 0) {
+          ElMessage({
+            type:"error",
+            message:`变量名称 ${ele.variable_name} 重复`
+          })
+          return false
+        } else {
+          funObj[ele.variable_name]=1
+        } 
+      }
+
+      formData.value.generic_variables = funcData.value.reduce((a, b) => ({
+        ...a,
+        [b.variable_name]:{...unref(b),fun_param:JSON.parse(unref(b).fun_param)}
+      }), { })
       // else if(!formData.value.case_desc) {
       //   ElMessage({
       //     message: '请输入用例描述',
@@ -555,7 +616,16 @@ setup() {
         getRequestAllChecked(request)
       }
     }else if(val == 3) {
-      requestJson.value = firstTrans(queryTableData.value,'query')
+      let error = queryTableData.value.filter(v=>v.checked).some(v=>!/^\$\{.+\}$/.test(v.queryValue))
+      if (error) {
+        ElMessage({
+          type: "error",
+          message:`请求参数-参数化值必须是\${}格式`
+        })
+        return
+      }
+
+      requestJson.value = firstTrans(queryTableData.value, 'query')
       responseJson.value = firstTrans(backTableData.value,'response')
       checkSql.itemSql = ''
       checkResponseTableData.value = JSON.parse(JSON.stringify(backTableData.value))
@@ -713,7 +783,7 @@ setup() {
   //全景-高级切换
   const handleClick = (tab, event) => {
       data.activeName = tab.index
-      if(data.activeName == '1') {
+    if (data.activeName == '1') {
         requestJson.value = firstTrans(queryTableData.value,'query')
         responseJson.value = firstTrans(backTableData.value,'response')
         getCaseVariable(queryTableData.value)
@@ -739,7 +809,7 @@ setup() {
       if(item.name == key) {
         item.checked = true
         item.queryName = key
-        item.queryValue = '$'+key
+        item.queryValue = `\${${key}}`
       }else {
         if(item.children) {
           addCaseVariable(item.children,key)
@@ -808,7 +878,7 @@ setup() {
         if(item.valueType=='object') {
           obj[item.name] = {}
         }else if(item.valueType == 'null' ){
-          obj[item.name] = ''
+          obj[item.name] = null
         }else if(item.valueType == 'number') {
          if(item.value == undefined) {
           obj[item.name] = null
@@ -888,8 +958,8 @@ setup() {
         }else {
           arr.push({
             name:key,
-            valueType:'string',
-            value:""
+            valueType:'null',
+            value:null
           })
         }
       }else if (typeof obj[key] == 'number' && obj[key] ==0) {
@@ -1013,7 +1083,7 @@ setup() {
     val.forEach((item,index) => {
         if(item.checked) {
           item.queryName = item.name
-          item.queryValue = '$'+ item.name
+          item.queryValue = `\${${item.name}}` //'$'+ item.name
         }else {
           delete item.queryName
           delete item.queryValue
@@ -1312,11 +1382,13 @@ setup() {
       version:formData.value.version,
       wait_time:formData.value.wait_time,
       header:headerObj,
+      edit_uid: window.sessionStorage.getItem('userName')||'default',
       request_param:requestJson.value,
       response:responseJson.value,
       case_variable:case_variable.value,
       result_variable:result_variable.value,
-      result_check:result_check,
+      result_check: result_check,
+      generic_variables:formData.value.generic_variables
     }
     const res = await axios({
           method: 'post',
@@ -1479,6 +1551,31 @@ setup() {
       }
     })
   }
+  const previewHeaderInfo = async function ({row,$index}) {
+    let res = await axios({
+      method: "post",
+      url:"/iftest/functions/varPreview",
+      data:{
+        pageSize: 10,
+        en_name:row.en_name,
+        ...row,
+        fun_param:JSON.parse(row.fun_param)
+      }
+    })
+    ElMessage({
+      type: res.code === 200 ? 'success' : 'error',
+      message: res.message,
+    })
+
+    row.preview = res.data.variable_value
+  }
+
+  let deleteFunInfo = function ({ $index }) {
+    funcData.value.splice($index,1)
+  }
+  let handleSaveFunList = function (val) {
+    funcData.value.push(...val.selections);
+  }
   onMounted(()=>{
     getIfaceDetail(tableParams.iface_id)
     getSqlName(tableParams.project_id)
@@ -1494,6 +1591,12 @@ setup() {
     backTableData,
     change,
     changeStep,
+    funcData,
+    funVarVisiable,
+    previewHeaderInfo,
+    deleteFunInfo,
+
+    handleSaveFunList,
     step,
     data,
     requestJson,
@@ -1684,6 +1787,9 @@ setup() {
   
 }
 
+.fun-var{
+    margin-top: 10px;
+  }
 .label {
   font-size: 12px;
 }
