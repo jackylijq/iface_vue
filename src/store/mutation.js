@@ -40,4 +40,9 @@ export default {
   [types.SET_REFRESH_OPTION](state, option) {
     state.refreshOptions = option
   },
+
+  [types.SET_PROJECT_ID](state, id) {
+    state.project.id = id
+    window.sessionStorage.setItem('project', JSON.stringify(state.project))
+  },
 }

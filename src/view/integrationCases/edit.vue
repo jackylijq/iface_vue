@@ -16,6 +16,27 @@
             </el-icon> -->
             <img src="../../assets/image/integrationCases/test.svg" @click="handleTest" style="width: 21px" alt="" />
           </el-tooltip>
+
+          <el-tooltip effect="dark" content="批量删除" placement="top">
+            <svg
+              style="transform: translateY(2px)"
+              @click="batchDelete"
+              t="1718845320104"
+              class="icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="2315"
+              width="18"
+              height="18"
+            >
+              <path
+                d="M341.312 85.312l64-85.312h213.376l64 85.312H960v85.376H64V85.312h277.312zM170.688 256h682.624v768H170.688V256z m298.624 170.688H384v426.624h85.312V426.688z m170.688 0H554.688v426.624H640V426.688z"
+                fill="#797979"
+                p-id="2316"
+              ></path>
+            </svg>
+          </el-tooltip>
         </div>
         <div class="pageChange">
           <el-switch v-model="pageType" active-text="列表模式" inactive-text="画布模式" @change="changeType" />
@@ -63,26 +84,36 @@
       <div class="caseTable">
         <div class="tablePlace marBotSytle">
           <el-table
+            ref="tableRef"
+            stripe
             :data="tableData"
             :border="parentBorder"
             :row-key="getRowKey"
             @row-click="handleRowClick"
+            @selection-change="handleSelectionChange"
+            :row-class-name="tableRowClassName"
             :expand-row-keys="expandedRows"
             :row-style="getRowClassName"
           >
+            <el-table-column type="selection" width="55" />
             <el-table-column type="expand" width="1">
               <template #default="{ row, $index }">
                 <row-detail
                   :key="modTime"
                   :msg="row"
                   @updateDetail="changeRow"
+                  @update-json-error="updateJsonError"
                   :canEdit="canEdit"
                   v-show="canSee"
                 ></row-detail>
                 <atomic-row-detail v-if="!canSee" :rowId="row.id"></atomic-row-detail>
               </template>
             </el-table-column>
-            <el-table-column label="用例编码" prop="id" width="90" />
+            <el-table-column label="用例编码" prop="id" width="90">
+              <template #default="{ row, $index }">
+                <span class="integration_id" :data-old-id="`${row.id}_${$index}`">{{ row.id }}</span>
+              </template>
+            </el-table-column>
             <el-table-column label="用例标题" prop="case_title" show-overflow-tooltip />
             <el-table-column label="用例描述" prop="case_desc" show-overflow-tooltip />
             <el-table-column label="等待时间" prop="wait_time" show-overflow-tooltip>
@@ -99,21 +130,21 @@
             <el-table-column label="结果变量" prop="result_variable" show-overflow-tooltip>
               <template #default="{ row }">{{ row.result_variable }}</template>
             </el-table-column>
-            <el-table-column fix="right" label="操作" width="180px">
+            <el-table-column fix="right" label="操作" width="120px">
               <template #default="scope">
                 <span class="iconPlace">
                   <el-icon @click.stop="changeCanEdit(scope)">
                     <Edit />
                   </el-icon>
-                  <el-icon @click.stop="synchronous(scope.row)">
+                  <el-icon @click.stop="synchronous(scope)">
                     <Switch />
                   </el-icon>
-                  <el-icon v-show="scope.$index !== 0" v-if="!canEdit" @click.stop="moveUp(scope)">
+                  <!-- <el-icon v-show="scope.$index !== 0" v-if="!canEdit" @click.stop="moveUp(scope)">
                     <Top />
                   </el-icon>
                   <el-icon v-show="scope.$index !== tableData.length - 1" v-if="!canEdit" @click.stop="moveDown(scope)">
                     <Bottom />
-                  </el-icon>
+                  </el-icon> -->
                   <el-icon @click.stop="handleRemove(scope)" v-if="!canEdit">
                     <Delete />
                   </el-icon>
@@ -141,6 +172,17 @@
       "
       @save="addTableRow"
     ></add-cases>
+
+    <SycronDia
+      :value="sycronDiaShow"
+      :sycronDiaInfo="sycronDiaInfo"
+      @input="
+        val => {
+          sycronDiaShow = false
+        }
+      "
+      @submit="handleSubmit"
+    />
   </div>
 </template>
 <script setup>
@@ -154,6 +196,25 @@ import RowDetail from './RowDetail.vue'
 import AddCases from './addCases.vue'
 import AtomicRowDetail from '../atomicCases/atomic-row-detail.vue'
 import router from '../../router'
+import SycronDia from './sycronDia.vue'
+import store from '@/store'
+import { createSortable } from '../testPlans/sortJs'
+
+let tableRef = ref()
+onMounted(() => {
+  createSortable(tableRef.value.$el.querySelector('.el-table__body-wrapper .el-table__body tbody'))
+})
+let multipleSelection = ref([])
+function tableRowClassName({ row, rowIndex }) {
+  return multipleSelection.value.some(v => v.id === row.id) ? 'selected' : ''
+}
+function handleSelectionChange(val) {
+  multipleSelection.value = val
+}
+function batchDelete() {
+  tableData.value = unref(tableData).filter(v => !unref(multipleSelection).some(e => e.id === v.id))
+  multipleSelection.value = []
+}
 
 // 获取用户id
 const editId = useStore().getters.user.id
@@ -177,11 +238,11 @@ const changeType = () => {
 // 表格设置
 const parentBorder = ref(false)
 const childBorder = ref(false)
-const tableData = reactive([])
+let tableData = ref([])
 const cellStyle = {
   fontSize: '18px', // 设置单元格字体大小
 }
-const total = computed(() => tableData.length)
+const total = computed(() => unref(tableData).length)
 const curPage = ref(1)
 
 // 控制展现组件
@@ -207,21 +268,21 @@ const activeIndex = ref(-1)
 
 // 修改table中的RowDetail信息
 const changeRow = ({ key, data, tableId }) => {
-  const index = tableData.findIndex(item => item.tableId === tableId)
-  tableData[index][key] = data
+  const index = unref(tableData).findIndex(item => item.tableId === tableId)
+  tableData.value[index][key] = data
 }
 
 // 添加原子用例
 const casesListShow = ref(false)
 const handleAdd = function () {
-  activeIndex.value = tableData.length - 1
+  activeIndex.value = unref(tableData).length - 1
   casesListShow.value = true
 }
 
 const addTableRow = function (caseInfo = {}) {
-  caseInfo.row.tableId = tableData.length
+  caseInfo.row.tableId = unref(tableData).length
   const index = unref(activeIndex)
-  tableData.splice(index + 1, 0, caseInfo.row)
+  tableData.value.splice(index + 1, 0, caseInfo.row)
 }
 
 const changeCanEdit = row => {
@@ -238,7 +299,7 @@ const changeCanEdit = row => {
 
 // 删除
 const handleRemove = row => {
-  tableData.splice(row.$index, 1)
+  tableData.value.splice(row.$index, 1)
 }
 
 const currentRowKey = ref('')
@@ -258,18 +319,18 @@ const getRowClassName = ({ row }) => {
 
 // 上移下移
 const moveUp = row => {
-  currentRowKey.value = row.row.tableId
-  const index = row.$index
-  if (index > 0) {
-    ;[tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]
-  }
+  // currentRowKey.value = row.row.tableId
+  // const index = row.$index
+  // if (index > 0) {
+  //   ;[tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]
+  // }
 }
 const moveDown = row => {
-  currentRowKey.value = row.row.tableId
-  const index = row.$index
-  if (index < tableData.length - 1) {
-    ;[tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]
-  }
+  // currentRowKey.value = row.row.tableId
+  // const index = row.$index
+  // if (index < tableData.length - 1) {
+  //   ;[tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]
+  // }
 }
 
 // 基本数据表单
@@ -286,19 +347,33 @@ const form = reactive({
 const saveForm = async () => {
   await refForm.value.validate()
   const { caseTitle, caseDesc, caseType, caseGroupId, id, remark, projectId } = form
-  const edit_uid = window.sessionStorage.getItem('userName')
-  const atom_case_list = tableData.map(v => v.id)
+
+  let doms = [...tableRef.value.$el.querySelectorAll('span.integration_id')]
+  let atom_case_list = doms.map(v => v.innerText)
+  let oldIds = [...tableRef.value.$el.querySelectorAll('span.integration_id')].map(v => v.dataset.oldId)
+  // let validateSceneCaseList = atom_case_list.every(e => unref(tableData).some(v => v.oldId == e))
+  // if (!validateSceneCaseList) {
+  //   ElMessage({
+  //     type: 'error',
+  //     message: '集成id不一致，请刷新页面',
+  //   })
+  //   return
+  // }
+
   const atom_case_detail = {}
-  tableData.forEach((e, index) => {
-    atom_case_detail[`${e.id}_${index}`] = {
-      request_url: e.request_url,
-      case_title: e.case_title,
-      case_variable: e.case_variable,
-      result_variable: e.result_variable,
-      case_desc: e.case_desc,
-      wait_time: Number(e.wait_time),
-    }
-  })
+  oldIds
+    .map(e => unref(tableData).find((v, i) => `${v.id}_${i}` == e))
+    .forEach((e, index) => {
+      atom_case_detail[`${e.id}_${index}`] = {
+        request_url: e.request_url,
+        case_title: e.case_title,
+        case_variable: e.case_variable,
+        result_variable: e.result_variable,
+        case_desc: e.case_desc,
+        wait_time: Number(e.wait_time),
+        result_check: e.result_check,
+      }
+    })
 
   const sendData = {
     case_title: caseTitle,
@@ -308,7 +383,7 @@ const saveForm = async () => {
     id,
     remark,
     project_id: projectId,
-    edit_uid,
+    edit_uid: store.getters.user.username,
     atom_case_list,
     atom_case_detail,
   }
@@ -319,8 +394,18 @@ const saveForm = async () => {
   })
   return res
 }
+
+const JSONError = {}
+const updateJsonError = function (key, message) {
+  JSONError[key] = message
+}
 // 保存数据
 const handleSave = async () => {
+  if (Object.values(JSONError).some(v => !!v)) {
+    ElMessage.error(`${Object.values(JSONError).find(v => !!v)}`)
+    return
+  }
+
   const res = await saveForm()
 
   ElMessage({
@@ -354,6 +439,11 @@ const getEnvList = async () => {
 
 // 测试
 const handleTest = async () => {
+  if (Object.values(JSONError).some(v => !!v)) {
+    ElMessage.error(`${Object.values(JSONError).find(v => !!v)}`)
+    return
+  }
+
   const res0 = await saveForm()
 
   ElMessage({
@@ -395,7 +485,7 @@ const load = async function (node, resolve) {
       method: 'post',
       url: '/iftest/condition/group/list',
       data: {
-        project_line_id: 1,
+        pro_line_id: 1,
         parents_id: 0,
         group_type: 'scene',
       },
@@ -421,7 +511,7 @@ const load = async function (node, resolve) {
       method: 'post',
       url: '/iftest/condition/group/list',
       data: {
-        project_line_id: 1,
+        pro_line_id: 1,
         parents_id: id,
         group_type: 'scene',
       },
@@ -478,27 +568,33 @@ const getMsg = () => {
     form.remark = create_remark
     form.caseGroupId = Number(group_id)
   }
-  const { items, case_desc, case_title, case_type, case_group_id, remark, project_id } =
+  const { id, items, case_desc, case_title, case_type, case_group_id, remark, project_id } =
     JSON.parse(window.localStorage.getItem(locationKey)) || {}
   // console.log(JSON.parse(window.localStorage.getItem(locationKey)))
+
   if (case_title) {
     items.forEach((item, index) => {
       item.tableId = Number(`${index}`)
     })
-    tableData.push(...items)
+
+    tableData.value.push(...items)
     // total.value = tableData.length
     form.caseTitle = case_title
     form.caseDesc = case_desc
     form.caseType = case_type === '正常' ? '1' : '2'
     form.caseGroupId = case_group_id
-    form.id = JSON.parse(window.localStorage.getItem(locationKey)).id
+    form.id = id
     form.remark = remark
     form.projectId = project_id
   }
 }
 
 const modTime = ref(new Date().getTime())
-const synchronous = async row => {
+let sycronDiaShow = ref(false)
+let sycronDiaInfo = reactive({})
+const synchronous = async ({ row, $index }) => {
+  activeIndex.value = $index
+  sycronDiaInfo.inte = JSON.parse(JSON.stringify(row))
   const res = await axios({
     method: 'POST',
     url: '/iftest/case/standStom/list',
@@ -509,8 +605,9 @@ const synchronous = async row => {
     },
   })
   if (res.code === 200) {
-    const { case_variable: caseVar, result_variable: resultVar } = res.data.datasList[0]
-    const { case_variable, result_variable } = row
+    const { case_variable: caseVar, result_variable: resultVar, result_check: resultCheck } = res.data.datasList[0]
+    // debugger
+    const { case_variable, result_variable, result_check } = row
     for (const key in caseVar) {
       if (!case_variable.hasOwnProperty(key)) {
         case_variable[key] = caseVar[key]
@@ -520,18 +617,33 @@ const synchronous = async row => {
       result_variable[key] = resultVar[key]
     }
 
-    ElMessage({
-      type: 'success',
-      message: '同步成功',
-    })
+    for (const key in resultCheck) {
+      result_check[key] = resultCheck[key]
+    }
+
+    sycronDiaInfo.atomic = res.data.datasList[0]
+    sycronDiaInfo.inte_combine = JSON.parse(JSON.stringify(row))
+    sycronDiaShow.value = true
+
+    // ElMessage({
+    //   type: 'success',
+    //   message: '同步成功',
+    // })
     modTime.value = new Date().getTime()
   } else {
-    ElMessage({
-      type: 'error',
-      message: '同步失败',
-    })
+    // ElMessage({
+    //   type: 'error',
+    //   message: '同步失败',
+    // })
   }
   // console.log(row)
+}
+
+let handleSubmit = function (data) {
+  sycronDiaShow.value = false
+  tableData.value[activeIndex.value].case_variable = JSON.parse(data[0].inte_combine)
+  tableData.value[activeIndex.value].result_variable = JSON.parse(data[1].inte_combine)
+  tableData.value[activeIndex.value].result_check = JSON.parse(data[2].inte_combine)
 }
 </script>
 <style lang="css" scoped>

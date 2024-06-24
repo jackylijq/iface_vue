@@ -94,7 +94,8 @@ const submit = async () => {
   let selectList = []
   if (scene_case_list !== '' && typeof scene_case_list !== 'number') {
     console.log(scene_case_list)
-    selectList = scene_case_list.split(',').map(item => item)
+    selectList = (typeof(scene_case_list)==="string"?scene_case_list.split(','):scene_case_list).map(item => item)
+    
   } else if (typeof scene_case_list === 'number') {
     selectList = [scene_case_list]
   }
@@ -109,7 +110,7 @@ const submit = async () => {
   })
   if (res.code === 200) {
     const { datasList } = res.data
-    emits('save', datasList)
+    emits('save', selectList.map(v=>datasList.find(e=>e.id==v)) )
     emits('input', false)
   }
 }

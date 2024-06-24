@@ -15,8 +15,13 @@
             </el-form-item>
           </div>
           <el-form-item label="用例参数">
-            <el-input type="textarea" v-model="form.case_variable" :disabled="props.canEdit" :rows="14"
-              @blur="updateInfo('case_variable')"></el-input>
+            <el-input
+              type="textarea"
+              v-model="form.case_variable"
+              :disabled="props.canEdit"
+              :rows="14"
+              @blur="updateInfo('case_variable')"
+            ></el-input>
           </el-form-item>
         </el-form>
       </el-tab-pane>
@@ -34,8 +39,38 @@
             </el-form-item>
           </div>
           <el-form-item label="结果变量">
-            <el-input type="textarea" v-model="form.result_variable" :disabled="props.canEdit" :rows="14"
-              @blur="updateInfo('result_variable')"></el-input>
+            <el-input
+              type="textarea"
+              v-model="form.result_variable"
+              :disabled="props.canEdit"
+              :rows="14"
+              @blur="updateInfo('result_variable')"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane label="结果检查" name="third">
+        <el-form label-width="80px">
+          <div class="formItem">
+            <el-form-item label="接口地址">
+              <el-input disabled v-model="form.request_url" />
+            </el-form-item>
+            <el-form-item label="接口标题">
+              <el-input disabled v-model="form.case_title" />
+            </el-form-item>
+            <el-form-item label="接口描述">
+              <el-input @blur="updateDetail('case_desc')" :disabled="props.canEdit" v-model="form.case_desc" />
+            </el-form-item>
+          </div>
+          <el-form-item label="结果检查">
+            <el-input
+              type="textarea"
+              v-model="form.result_check"
+              :disabled="props.canEdit"
+              :rows="14"
+              @blur="updateInfo('result_check')"
+            ></el-input>
           </el-form-item>
         </el-form>
       </el-tab-pane>
@@ -43,7 +78,7 @@
   </div>
 </template>
 <script setup>
-import { ref, defineProps, onMounted, onUnmounted, reactive, defineEmits } from 'vue'
+import { ref, defineProps, onMounted, onUnmounted, reactive, defineEmits, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
@@ -51,13 +86,21 @@ const props = defineProps({
     type: Object,
   },
   canEdit: {
-    type: Boolean
-  }
+    type: Boolean,
+  },
 })
 const activeName = ref('first')
 
+watch(
+  () => props.msg,
+  () => {
+    getMsg()
+  },
+  { deep: true },
+)
+
 // 修改父组件中rowDetail信息
-const emits = defineEmits(['updateDetail'])
+const emits = defineEmits(['updateDetail','update-json-error'])
 // const updateDetail = () => {
 //   emits('updateDetail', { form, id: props.msg.id })
 // }
@@ -70,12 +113,15 @@ const updateInfo = function (key) {
   const dataString = form[key]
   const strMap = {
     result_variable: '结果变量',
-    case_variable: '用例参数'
+    case_variable: '用例参数',
+    result_check: '结果检查',
   }
   try {
     emits('updateDetail', { key, data: JSON.parse(dataString), tableId: props.msg.tableId })
+    emits('update-json-error', key, '')
   } catch (error) {
     ElMessage.error(`${strMap[key]}不能被格式化`)
+    emits('update-json-error', key, `${strMap[key]}不能被格式化`)
   }
 }
 
@@ -87,7 +133,8 @@ const form = reactive({
   tableId: '',
   case_desc: '',
   case_variable: '{}',
-  result_variable: '{}'
+  result_variable: '{}',
+  result_check: '{}',
 })
 
 onMounted(() => {
@@ -102,6 +149,7 @@ const getMsg = function () {
   form.case_desc = props.msg.case_desc
   form.case_variable = JSON.stringify(props.msg.case_variable, null, 2)
   form.result_variable = JSON.stringify(props.msg.result_variable, null, 2)
+  form.result_check = JSON.stringify(props.msg.result_check, null, 2)
 }
 </script>
 <style lang="css" scoped>

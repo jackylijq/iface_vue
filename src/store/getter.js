@@ -6,6 +6,8 @@ export const loggedIn = state => state.loggedIn
 
 export const user = state => state.user
 
+export const project = state => state.project
+
 export const alreadyReadMessages = state => state.alreadyReadMessages
 
 export const unreadMessages = state => state.unreadMessages

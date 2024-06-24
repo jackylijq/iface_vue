@@ -2,10 +2,10 @@
   <section class="container">
     <div class="wrapper" id="wrapper">
       <router-view v-slot="{ Component }">
-        <keep-alive>
-          <component :is="Component" :key="$route.fullPath" v-if="$route.meta.keepAlive!==false" />
+        <keep-alive ref="refKeepAlive">
+          <component :is="Component" :key="$route.fullPath" v-if="$route.meta.keepAlive !== false" />
         </keep-alive>
-        <component :is="Component" :key="$route.fullPath" v-if="$route.meta.keepAlive===false" />
+        <component :is="Component" :key="$route.fullPath" v-if="$route.meta.keepAlive === false" />
       </router-view>
     </div>
   </section>
@@ -14,6 +14,26 @@
 <script>
 export default {
   name: 'AppMain',
+  watch: {
+    $route: {
+      handler() {
+        this.rmCache()
+      },
+    },
+  },
+
+  methods: {
+    rmCache() {
+      let history = JSON.parse(window.localStorage.getItem('history') || '[]')
+      let cachesMap = this.$refs.refKeepAlive.$.__v_cache
+      
+      ;[...cachesMap.keys()].forEach(key => {
+        if (!history.some(v => v.path === key)) {
+          cachesMap.delete(key)
+        }
+      })
+    },
+  },
 }
 </script>
 

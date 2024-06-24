@@ -236,6 +236,7 @@ export default {
 <style lang="scss" scoped>
 .results {
   padding: 8px 12px;
+  padding-top: 0;
   ::v-deep {
     .el-breadcrumb {
       line-height: 24px;
@@ -244,10 +245,9 @@ export default {
       margin: 0px 0px 8px 0px;
     }
   }
-  // .headerBox{
-  //   border-bottom:1px solid var(--el-border-color);
-  //   border-top:1px solid var(--el-border-color);
-  // }
+  .headerBox{
+    padding-top: 8px;
+  }
 }
 .stateSpan {
   margin: 0px 40px 0px 0px;
@@ -255,10 +255,11 @@ export default {
 .descriptBox {
   border: 1px solid var(--el-border-color);
 }
-.searchInput {
+::v-deep .searchInput {
   width: 350px;
   float: right;
-  margin: 8px 0px;
+  // margin-top: 0;
+  margin-bottom: 8px;
 }
 .searchForm {
   ::v-deep {

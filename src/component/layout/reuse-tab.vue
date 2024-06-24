@@ -1,5 +1,5 @@
 <template>
-  <div v-if="histories.length > 1" ref="resueTab" class="reuse-tab">
+  <div ref="resueTab" class="reuse-tab">
     <swiper
       class="reuse-tab-wrap"
       slides-per-view="auto"
@@ -11,7 +11,7 @@
       :mousewheel="true"
       direction="horizontal"
     >
-      <swiper-slide v-for="(item, index) in histories" :key="item.path">
+      <swiper-slide v-for="(item, index) in computedHistories" :key="item.path">
         <router-link
           class="reuse-tab-item"
           :class="item.path === $route.fullPath ? 'active' : ''"
@@ -21,13 +21,13 @@
           <i v-if="!filterIcon(stageList[item.stageId].icon)" :class="stageList[item.stageId].icon"></i>
           <img v-else :src="stageList[item.stageId].icon" style="width: 16px" />
           <span style="padding: 0 5px">{{ stageList[item.stageId].title }}</span>
-          <span class="el-icon-close" @click.prevent.stop="close(index)" />
+          <span v-if="computedHistories.length > 1" class="el-icon-close" @click.prevent.stop="close(index)" />
         </router-link>
       </swiper-slide>
     </swiper>
 
     <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
-      <li @click="closeAll">关闭所有</li>
+      <!-- <li @click="closeAll">关闭所有</li> -->
       <li @click="closeOthers">关闭其他</li>
       <li @click="closeLeft" v-if="hasLeft">关闭左侧</li>
       <li @click="closeRight" v-if="hasRight">关闭右侧</li>
@@ -74,10 +74,12 @@ export default {
         ele.stageId = to.name
         ele.path = to.fullPath
         ele.routePath = to.matched[to.matched.length - 1].path
-        this.histories = [ele, ...histories]
+        setTimeout(() => {
+          this.histories = [ele, ...histories]
+        }, 200)
       },
       deep: true,
-      immediate:true
+      immediate: true,
     },
     loggedIn(val) {
       if (val) {
@@ -113,6 +115,9 @@ export default {
     }
   },
   computed: {
+    computedHistories() {
+      return this.histories
+    },
     loggedIn() {
       return this.$store.state.loggedIn
     },
@@ -127,7 +132,9 @@ export default {
   },
   mounted() {
     emitter.on('clearTap', () => {
-      this.histories = []
+      // this.histories = []
+      this.index = this.histories.findIndex(item=>item.path === this.$route.fullPath)
+      this.closeOthers()
     })
     emitter.on('custom-close', () => {
       const index = this.histories.findIndex(v => v.path === unref(router.currentRoute).fullPath)
@@ -137,6 +144,7 @@ export default {
   methods: {
     init() {
       const histories = []
+      return
 
       // 获取当前的历史记录, 可能从本地存储, 可能直接获取当前的
       let localHistory
@@ -172,14 +180,19 @@ export default {
       this.$router.push(this.defaultRoute)
     },
     closeOthers() {
-      this.$router.push(this.histories[this.index].path)
-      this.histories = []
+      if (this.histories[this.index]) {
+        let newHistory = [this.histories[this.index]]
+        this.histories = newHistory
+        this.$router.push(newHistory[0].path)
+      }
     },
     closeLeft() {
       this.histories.splice(0, this.index)
+      this.$router.push(this.histories[0].path)
     },
     closeRight() {
       this.histories.splice(this.index + 1, this.histories.length - this.index - 1)
+      this.$router.push(this.histories[this.index].path)
     },
     onTags(index, event) {
       this.closeMenu()
@@ -214,18 +227,19 @@ export default {
     },
     close(index) {
       // 检测是否是当前页, 如果是当前页则自动切换路由
-      if (this.$route.fullPath === this.histories[index].path) {
+      let copyHistories = [...this.histories]
+      this.histories.splice(index, 1)
+      this.histories = [...this.histories]
+
+      if (this.$route.fullPath === copyHistories[index].path) {
         if (index > 0) {
-          this.$router.push(this.histories[index - 1].path)
-        } else if (this.histories.length > 1) {
-          this.$router.push(this.histories[1].path)
+          this.$router.push(copyHistories[index - 1].path)
+        } else if (copyHistories.length > 1) {
+          this.$router.push(copyHistories[1].path)
         } else {
           this.$router.push(this.defaultRoute)
         }
       }
-      // 删除该历史记录
-      this.histories.splice(index, 1)
-      this.histories = [...this.histories]
     },
   },
 }

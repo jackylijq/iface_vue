@@ -3,6 +3,7 @@
     <div class="nav-content">
       <breadcrumb />
       <div class="right-info">
+        <Project />
         <lin-notify
           height="370"
           :value="value"
@@ -29,7 +30,7 @@ import User from './user'
 import ClearTab from './clear-tab'
 import Breadcrumb from './breadcrumb'
 import Screenfull from './screen-full'
-
+import Project from "./project.vue"
 export default {
   name: 'NavBar',
   data() {
@@ -85,6 +86,7 @@ export default {
     User,
     Screenfull,
     ClearTab,
+    Project,
   },
 }
 </script>
@@ -111,7 +113,12 @@ export default {
     .right-info {
       display: flex;
       align-items: center;
+
+      ::v-deep(.el-select){
+        min-width: 150px;
+      }
     }
   }
 }
+
 </style>

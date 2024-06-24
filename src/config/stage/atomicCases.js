@@ -19,9 +19,9 @@ const atomicCasesRouter = [
     inNav: false,
     icon: 'el-icon-goods',
     order: 2,
-    meta:{
-      keepAlive:true
-    }
+    meta: {
+      keepAlive: true,
+    },
   },
   {
     title: '原子用例编辑',
@@ -33,9 +33,9 @@ const atomicCasesRouter = [
     inNav: false,
     icon: 'el-icon-goods',
     order: 2,
-    meta:{
-      keepAlive:true
-    }
+    meta: {
+      keepAlive: true,
+    },
   },
   {
     title: '原子用例详情',
@@ -57,7 +57,17 @@ const atomicCasesRouter = [
     inNav: false,
     icon: 'el-icon-goods',
     order: 2,
-  }
+  },
+  {
+    title: '场景关联',
+    name: Symbol('atomic-test-record'),
+    activePath: '/atomiccase/list',
+    route: '/atomiccase/integrationRelation',
+    filePath: 'view/integrationCases/index.vue',
+    inNav: false,
+    icon: 'el-icon-goods',
+    order: 2,
+  },
 ]
 
 export default atomicCasesRouter

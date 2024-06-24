@@ -30,6 +30,7 @@ import axios from 'lin/plugin/axios'
 import UserModel from '@/lin/model/user'
 import Utils from '@/lin/util/util'
 import Config from '@/config'
+import * as types from '@/store/mutation-type'
 
 export default {
   setup() {
@@ -58,7 +59,14 @@ export default {
         await UserModel.getToken(username, password, captcha, tag)
         await getInformation()
         loading.value = false
-        router.push(Config.defaultRoute)
+
+        let { targetPath, pro_line_id } = router.currentRoute.value.query
+
+        // 设置项目
+        store.commit(types.SET_PROJECT_ID, pro_line_id)
+
+        targetPath = Config.throughDefaultRoute.some(v => v === targetPath) ? Config.defaultRoute : targetPath
+        router.push(targetPath)
         ctx.$message({
           message: '登录成功',
           type: 'success',
@@ -85,7 +93,6 @@ export default {
       try {
         // 尝试获取当前用户信息
         const user = await UserModel.getPermissions()
-        window.sessionStorage.setItem('userName', user.username)
         store.dispatch('setUserAndState', user)
         store.commit('SET_USER_PERMISSIONS', user.permissions)
       } catch (e) {

@@ -26,7 +26,7 @@
 </template>
 <script setup>
 import { onMounted, reactive, ref, unref } from 'vue'
-import { useStore } from 'vuex'
+import store from '@/store'
 import router from '../../router'
 import emitter from 'lin/util/emitter'
 import AddBaseInfo from './addBaseInfo.vue'
@@ -40,7 +40,7 @@ let baseInfoShow = ref(false)
 let timestamp = new Date().getTime()
 let data = reactive({
   project_id: 1,
-  edit_uid: useStore().getters.user.id,
+  edit_uid: store.getters.user.username,
   case_title: '', //`标题-${timestamp}`,
   case_desc: '',
   case_type: '正常',

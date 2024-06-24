@@ -6,7 +6,7 @@
       @create="btnCreate"
       :pageConfig="computedPageConfig"
       @current-change="currentChange"
-      :level="levelData"
+      :tabsData="tabsData"
       @size-change="sizeChange"
     >
       <template #prepend>
@@ -19,29 +19,34 @@
       <template #table>
         <el-table v-if="searchType === 'case_title'" :data="tableData" stripe style="width: 100%">
           <el-table-column :show-overflow-tooltip="true" prop="id" label="用例编号" width="100px" />
-          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称">
+          <el-table-column :show-overflow-tooltip="true" prop="iface_name" label="接口名称" min-width="100px">
             <template #default="{ row }">
               <a style="color: #3963bc" @click="handleRowClick(row)">{{ row.iface_name }}</a>
             </template>
           </el-table-column>
 
-          <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称">
+          <el-table-column :show-overflow-tooltip="true" prop="case_title" label="用例名称" min-width="100px">
             <template #default="scope">
               <a style="color: #3963bc" @click="toRowDetail(scope)">{{ scope.row.case_title }}</a>
             </template>
           </el-table-column>
           <!-- <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="用例描述" /> -->
-          <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" width="150px" />
-          <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" width="150px">
+          <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例类型" min-width="100px" />
+          <el-table-column :show-overflow-tooltip="true" prop="case_status" label="用例状态" min-width="100px">
             <template #default="{ row }">
               <span :class="{ '--pass': row.case_status === 'pass', '--fail': row.case_status === 'failed' }">{{
                 row.case_status === 'failed' ? '测试失败' : row.case_status === 'pass' ? '测试成功' : '未测试'
               }}</span>
             </template>
           </el-table-column>
+          <el-table-column :show-overflow-tooltip="true" prop="scene_num" label="场景数量" min-width="100px">
+            <template #default="scope">
+              <a style="color: #3963bc" @click="toIntegrationList(scope)">{{ scope.row.scene_num }}</a>
+            </template>
+          </el-table-column>
           <!-- <el-table-column :show-overflow-tooltip="true" prop="exeResult" label="执行结果" /> -->
-          <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
-          <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="更新人员" />
+          <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" min-width="120px" />
+          <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="更新人员" min-width="100px" />
           <el-table-column prop="address" label="操作" width="300">
             <template #default="scope">
               <el-button type="primary" text size="small" @click.stop="testClick(scope)">测试</el-button>
@@ -65,62 +70,11 @@
         </el-table>
       </template>
       <template #view>
-        <div class="view">
-          <div class="title">基本信息</div>
-          <el-form ref="baseFormRef" :model="formData" label-width="120px">
-            <el-form-item label="接口名称">
-              <div class="input">{{ formData.name }}</div>
-            </el-form-item>
-            <el-form-item label="接口地址">
-              <span class="postBtn">{{ formData.method }}</span>
-              <div class="input">{{ formData.address }}</div>
-            </el-form-item>
-          </el-form>
-
-          <div class="headerTitle">请求参数</div>
-          <div class="apply">
-            <div class="applyTitle">Headers:</div>
-            <el-table :data="applyTableData" stripe style="width: 100%">
-              <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" />
-              <el-table-column :show-overflow-tooltip="true" prop="value" label="参数值" />
-              <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
-              <el-table-column :show-overflow-tooltip="true" prop="t3" label="示例" />
-              <el-table-column :show-overflow-tooltip="true" prop="desc" label="备注" />
-            </el-table>
-            <div class="applyTitle">Query:</div>
-            <el-table
-              :data="queryTableData"
-              stripe
-              style="width: 100%"
-              :tree-props="{ children: 'children' }"
-              row-key="name"
-            >
-              <el-table-column :show-overflow-tooltip="true" prop="name" label="参数名称" />
-              <el-table-column :show-overflow-tooltip="true" prop="type" label="参数类型" />
-              <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
-              <el-table-column :show-overflow-tooltip="true" prop="t3" label="示例" />
-              <el-table-column :show-overflow-tooltip="true" prop="description" label="备注" />
-            </el-table>
-          </div>
-          <div class="headerTitle">返回数据</div>
-          <el-table
-            class="backTable"
-            :data="backTableData"
-            stripe
-            style="width: 100%"
-            row-key="name"
-            :tree-props="{ children: 'children' }"
-          >
-            <el-table-column :show-overflow-tooltip="true" prop="name" label="名称" />
-            <el-table-column :show-overflow-tooltip="true" prop="type" label="类型" />
-            <el-table-column :show-overflow-tooltip="true" prop="required" label="是否必须" :formatter="change" />
-            <el-table-column :show-overflow-tooltip="true" prop="" label="默认值" />
-            <el-table-column :show-overflow-tooltip="true" prop="description" label="备注" />
-            <el-table-column :show-overflow-tooltip="true" prop="format" label="其他信息" />
-          </el-table>
-        </div>
+        <interface-detail :iface_id="tableParams.iface_id"></interface-detail>
       </template>
     </treeTable>
+
+    <atomicCasesTestDialog v-if="testDialogVisible" v-model="testDialogVisible" @submit="testFn" />
   </div>
 </template>
 <script>
@@ -130,9 +84,10 @@ import { ref, unref, computed, nextTick, watch, reactive, onMounted, onActivated
 import router from '../../router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Utils from 'lin/util/util'
-
+import interfaceDetail from '../interface/interface-detail.vue'
+import atomicCasesTestDialog from './atomic-cases-test-dialog.vue'
 export default {
-  components: { treeTable },
+  components: { treeTable, interfaceDetail, atomicCasesTestDialog },
   setup() {
     const canCreate = ref(true)
     const currentNodeKey = ref('')
@@ -145,15 +100,24 @@ export default {
         return '是'
       }
     }
+
+    let tabsData = reactive([
+      {
+        label: '用例列表',
+        slot: 'table',
+      },
+      {
+        label: '接口详情',
+        slot: 'view',
+        show() {
+          return levelData.level === 3
+        },
+      },
+    ])
     const levelData = reactive({
       level: '',
     })
-    let formData = reactive({
-      name: '',
-      address: '',
-      method: '',
-    })
-    const handleClick = (tab, event) => {}
+
     const treeConfig = ref({
       data: [],
       lazy: true,
@@ -164,7 +128,7 @@ export default {
         if (level === 0) {
           const res = await axios({
             method: 'post',
-            url: '/iftest/iface/project/list',
+            url: '/iftest/product/proList',
           })
           const nodeData = [
             { id: '-1', label: '全部', leaf: true, otherData: { id: '-1' } },
@@ -263,7 +227,7 @@ export default {
           tableParams.value.group_id = group_id
           tableParams.value.project_id = project_id
           currentNodeKey.value = `${project_id}-${group_id}-${iface_id || id}`
-          getIfaceDetail(iface_id)
+          // getIfaceDetail(iface_id)
         }
         levelData.level = level
 
@@ -333,41 +297,44 @@ export default {
       },
     }))
 
-
     onActivated(() => {
-      getTableData();
+      getTableData()
     })
-    
 
     onMounted(() => {
       // 设置状态
-      let statusInfo = JSON.parse(window.sessionStorage.getItem('atomic-cases-list_status') || '{}')
-      nextTick(() => {
-        if (statusInfo.currentNodeKey && statusInfo.currentNodeKey != '-1') {
-          let [project_id, group_id, iface_id] = statusInfo.currentNodeKey.split('-')
-          tableParams.value.iface_id = iface_id
-          tableParams.value.group_id = group_id
-          tableParams.value.project_id = project_id
+      // let statusInfo = JSON.parse(window.sessionStorage.getItem('atomic-cases-list_status') || '{}')
+      // nextTick(() => {
+      //   if (statusInfo.currentNodeKey && statusInfo.currentNodeKey != '-1') {
+      //     let [project_id, group_id, iface_id] = statusInfo.currentNodeKey.split('-')
+      //     tableParams.value.iface_id = iface_id
+      //     tableParams.value.group_id = group_id
+      //     tableParams.value.project_id = project_id
 
-          currentNodeKey.value = '-1'
-          defaultExpandedKeys.value = []
-          setTimeout(() => {
-            if (statusInfo.defaultExpandedKeys) defaultExpandedKeys.value = statusInfo.defaultExpandedKeys
-            currentNodeKey.value = statusInfo.currentNodeKey
-            window.sessionStorage.removeItem('atomic-cases-list_status')
-            levelData.level = 3
-            getIfaceDetail(iface_id)
-          }, 100)
-        }
-      })
+      //     currentNodeKey.value = '-1'
+      //     defaultExpandedKeys.value = []
+      //     setTimeout(() => {
+      //       if (statusInfo.defaultExpandedKeys) defaultExpandedKeys.value = statusInfo.defaultExpandedKeys
+      //       currentNodeKey.value = statusInfo.currentNodeKey
+      //       window.sessionStorage.removeItem('atomic-cases-list_status')
+      //       levelData.level = 3
+      //       // getIfaceDetail(iface_id)
+      //     }, 100)
+      //   }
+      // })
+      if (unref(router.currentRoute).query.project_id) {
+        setTimeout(() => {
+          handleRowClick(unref(router.currentRoute).query)
+        }, 100)
+      }
     })
 
     // 点击用例名称
-    const toRowDetail = function(scope) {
+    const toRowDetail = function (scope) {
       const params = {
         ...scope.row,
-        defaultExpandedKeys: unref(this.defaultExpandedKeys),
-        currentNodeKey: unref(this.currentNodeKey),
+        // defaultExpandedKeys: unref(this.defaultExpandedKeys),
+        // currentNodeKey: unref(this.currentNodeKey),
       }
       params.req_body = JSON.stringify(params.req_body)
       params.res_body = JSON.stringify(params.res_body)
@@ -379,7 +346,7 @@ export default {
       params.result_check = JSON.stringify(params.result_check)
       params.result_variable = JSON.stringify(params.result_variable)
       params.generic_variables = JSON.stringify(params.generic_variables || {})
-      router.push({path: '/atomiccase/detail', query: params })
+      router.push({ path: '/atomiccase/detail', query: params })
     }
 
     // 点击创建
@@ -396,7 +363,7 @@ export default {
       }
       params.req_body = JSON.stringify(params.req_body)
       params.res_body = JSON.stringify(params.res_body)
-      params.generic_variables = JSON.stringify(params.generic_variables || {});
+      params.generic_variables = JSON.stringify(params.generic_variables || {})
       params.case_variable = JSON.stringify(params.case_variable)
       params.header = JSON.stringify(params.header)
       params.request_param = JSON.stringify(params.request_param)
@@ -415,7 +382,7 @@ export default {
 
       if (iface_id || id) {
         levelData.level = 3
-        getIfaceDetail(iface_id || id)
+        // getIfaceDetail(iface_id || id)
       }
 
       currentNodeKey.value = `${project_id}-${group_id}-${iface_id || id}`
@@ -427,10 +394,18 @@ export default {
       getTableData()
     }
 
+    let testDialogVisible = ref(false)
+
     // 点击测试按钮
+    let scopeInfo = {};
     const testClick = async function (scope) {
-      let params = { plan_list: [], scene_list: [], test_case: [], branch: 'test' }
-      params.test_case = [scope.row.id]
+      scopeInfo = scope
+      testDialogVisible.value = true
+    }
+
+    async function testFn(branch) {
+      let params = { plan_list: [], scene_list: [], test_case: [], branch }
+      params.test_case = [scopeInfo.row.id]
       const res = await axios({
         method: 'post',
         url: '/iftest/case/execute/test',
@@ -440,7 +415,7 @@ export default {
       })
       ElMessage[res.code == 200 ? 'success' : 'error'](res.message)
       if (res.code == 200) {
-        router.push(`/integrationcases/test?batch_id=${res.batch_id}&case_id=${scope.row.id}`)
+        router.push(`/integrationcases/test?batch_id=${res.batch_id}&case_id=${scopeInfo.row.id}`)
       }
     }
 
@@ -463,7 +438,10 @@ export default {
     }
     // 点击测试记录按钮
     const toRecord = scope => {
-      router.push({ path: '/atomiccase/record', query: { id: scope.row.id, case_title: scope.row.case_title, case_id: scope.row.case_id } })
+      router.push({
+        path: '/atomiccase/record',
+        query: { id: scope.row.id, case_title: scope.row.case_title, case_id: scope.row.case_id },
+      })
     }
 
     // 点击删除按钮
@@ -471,8 +449,7 @@ export default {
       // 定义要删除的用例id
       let params = { test_case: [] }
       params.test_case = [scope.row.id]
-
-      ElMessageBox.confirm(`是否确认删除${scope.row.iface_name}?`, '提示', {
+      ElMessageBox.confirm(`是否确认删除${scope.row.case_title}?`, '提示', {
         type: 'warning',
       }).then(async () => {
         let res = await axios({
@@ -497,133 +474,14 @@ export default {
     })
     const totalConfig = ref(0)
     const tableData = ref([])
-    let queryTableData = ref([])
-    let applyTableData = ref([])
-    let backTableData = ref([])
+
     let tableParams = ref({
       request_url: '',
       case_title: '',
       project_id: '',
       iface_id: '',
     })
-    let getIfaceDetail = async function (iface_id) {
-      let data = { id: iface_id }
-      formData.name = ''
-      formData.address = ''
-      formData.method = ''
-      applyTableData.value = []
-      queryTableData.value = []
-      backTableData.value = []
-      const res = await axios({
-        method: 'post',
-        url: '/iftest/iface/iface_detail',
-        data,
-      })
-      console.log(res, 'res')
-      const { req_headers, req_body, res_body, iface_name, request_url, request_method } = res.data
-      formData.name = iface_name
-      formData.address = request_url
-      formData.method = request_method
-      let req_headersJson = req_headers
-        .replace(RegExp('[(]', 'g'), '')
-        .replace(RegExp('[)]', 'g'), '')
-        .replace(RegExp('ObjectId', 'g'), '')
-      applyTableData.value = JSON.parse('[' + req_headersJson + ']')
-      if (typeof req_body == 'string' && req_body !== '') {
-        if (req_body.indexOf('ObjectId') !== -1) {
-          let req_bodyJson = req_body
-            .replace(RegExp('[(]', 'g'), '')
-            .replace(RegExp('[)]', 'g'), '')
-            .replace(RegExp('ObjectId', 'g'), '')
-          queryTableData.value = JSON.parse('[' + req_bodyJson + ']')
-          queryTableData.value.forEach(item => (item.description = item.desc))
-        } else {
-          let queryJson = JSON.parse(req_body.replace(/[\r|\n|\t]/g, ''))
-          if (queryJson.items) {
-            transObj(queryJson.items)
-          } else if (queryJson.properties) {
-            queryTableData.value = transObj(queryJson)
-          }
-        }
-      } else if (typeof req_body == 'object') {
-        if (req_body.items) {
-          queryTableData.value = transObj(req_body.items)
-        } else if (req_body.properties && !req_body.$$ref) {
-          queryTableData.value = transObj(req_body)
-        } else if (req_body.properties && req_body.$$ref) {
-          queryTableData.value = objToTree(req_body.properties)
-        }
-      }
-      if (res_body.items) {
-        backTableData.value = transObj(res_body.items)
-      } else if (res_body.properties && !res_body.$$ref) {
-        backTableData.value = transObj(res_body)
-      } else if (res_body.properties && res_body.$$ref) {
-        backTableData.value = objToTree(res_body.properties)
-      }
-    }
-    let transObj = function (obj) {
-      let arr = []
-      for (let key in obj.properties) {
-        let itemObj = {
-          name: key,
-          type: obj.properties[key].type,
-          description: obj.properties[key].description || '',
-        }
-        if (obj.required && obj.required.includes(key) == true) {
-          itemObj.required = 1
-        } else {
-          itemObj.required = 0
-        }
-        if (itemObj.type == 'array') {
-          itemObj.children = transObj(obj.properties[key].items)
-        } else if (itemObj.type == 'object') {
-          itemObj.children = transObj(obj.properties[key])
-        }
-        arr.push(itemObj)
-      }
-      return arr
-    }
-    let objToTree = function (obj) {
-      let arr = []
-      for (let key in obj) {
-        //判断每个值是不是一个对象
-        if (typeof obj[key] === 'object') {
-          if (obj[key].properties) {
-            arr.push({
-              name: key,
-              type: obj[key].type,
-              description: obj[key].description,
-              children: objToTree(obj[key].properties),
-              required: 0,
-            })
-          } else if (obj[key].items) {
-            arr.push({
-              name: key,
-              type: obj[key].type,
-              description: obj[key].description,
-              children: objToTree(obj[key].items.properties),
-              required: 0,
-              format: 'item 类型:' + obj[key].items['type'],
-            })
-          } else {
-            let newobj = {
-              name: key,
-              type: obj[key].type,
-              description: obj[key].description,
-              required: 0,
-            }
-            obj[key].format ? (newobj.format = obj[key].format) : ''
-            arr.push(newobj)
-          }
-        } else {
-          arr.push({
-            key: obj[key],
-          })
-        }
-      }
-      return arr
-    }
+
     let getTableData = Utils.debounce(async function () {
       // tableParams.value[unref(searchType) === 'case_title' ? 'request_url':'case_title' ] = undefined
       let data = {
@@ -640,7 +498,7 @@ export default {
         url,
         data,
       }).catch(err => {
-        console.log(err);
+        console.log(err)
       })
 
       let { datasList, curPage, pageSize, total } = res.data
@@ -689,7 +547,16 @@ export default {
       getTableData()
     }
 
+    function toIntegrationList(scope) {
+      let params = {
+        relation: true, //场景关联
+        id: scope.row.id,
+      }
+      router.push({ path: '/atomiccase/integrationRelation', query: params })
+    }
+
     return {
+      tableParams,
       currentNodeKey,
       defaultExpandedKeys,
       treeConfig,
@@ -701,8 +568,9 @@ export default {
       btnCreate,
       editClick,
       handleRowClick,
-
+      testDialogVisible,
       testClick,
+      testFn,
       delClick,
       copyClick,
 
@@ -710,16 +578,12 @@ export default {
       computedPageConfig,
       currentChange,
       sizeChange,
+      tabsData,
       levelData,
-      formData,
-      applyTableData,
-      queryTableData,
-      backTableData,
-      getIfaceDetail,
       change,
-      objToTree,
       toRowDetail,
-      toRecord
+      toIntegrationList,
+      toRecord,
     }
   },
 }
@@ -739,117 +603,5 @@ export default {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-.title {
-  font-size: 16px;
-  color: #000000d8;
-  margin: 0 0 20px 20px;
-  font-weight: 700;
-  position: relative;
-  &::before {
-    position: absolute;
-    content: '';
-    left: -12px;
-    top: 0;
-    width: 4px;
-    height: 20px;
-    background: #000000d8;
-  }
-}
-.headerTitle {
-  font-size: 16px;
-  font-weight: 700;
-  color: #000000d8;
-  margin: 20px 0 20px 20px;
-  position: relative;
-  &::before {
-    position: absolute;
-    content: '';
-    left: -12px;
-    top: 0;
-    width: 4px;
-    height: 20px;
-    background: #000000d8;
-  }
-}
-.applyTitle {
-  font-size: 14px;
-  padding: 10px 0 10px 30px;
-  font-weight: 700;
-}
-.postBtn {
-  display: inline-block;
-  background-color: #339e37;
-  color: #fff;
-  border-radius: 2px;
-  width: 72px;
-  height: 32px;
-  text-align: center;
-}
-.input {
-  width: 320px;
-  height: 32px;
-  padding-left: 10px;
-  border: 1px solid #dcdfe6;
-  background-color: #fff;
-  border-radius: 3px;
-  display: inline-block;
-}
-.backTable {
-  margin-bottom: 40px;
-}
-
-::v-deep .el-table__expand-icon {
-  -webkit-transform: rotate(0deg);
-  transform: rotate(0deg);
-}
-::v-deep .el-table__expand-icon > .el-icon {
-  display: none !important;
-}
-::v-deep .el-table__expand-icon:before {
-  background: url('../../assets/image/table/open.png') no-repeat;
-  content: '';
-  display: block;
-  width: 15px;
-  height: 20px;
-  font-size: 18px;
-  background-size: 14px;
-  margin-top: 4px;
-}
-
-::v-deep .el-table__expand-icon--expanded:before {
-  background: url('../../assets/image/table/close.png') no-repeat;
-  content: '';
-  display: block;
-  width: 15px;
-  height: 20px;
-  font-size: 18px;
-  background-size: 14px;
-  margin-top: 4px;
-}
-</style>
-<style>
-::v-deep.el-table__expand-icon {
-  -webkit-transform: rotate(0deg);
-  transform: rotate(0deg);
-}
-::v-deep.el-table__expand-icon .el-icon-arrow-right:before {
-  background: url('../../assets/image/table/open.png') no-repeat 0 1px;
-  content: '';
-  display: block;
-  width: 15px;
-  height: 20px;
-  font-size: 18px;
-  background-size: 14px;
-}
-
-::v-deep.el-table__expand-icon--expanded .el-icon-arrow-right:before {
-  background: url('../../assets/image/table/close.png') no-repeat 0 1px;
-  content: '';
-  display: block;
-  width: 15px;
-  height: 20px;
-  font-size: 18px;
-  background-size: 14px;
 }
 </style>

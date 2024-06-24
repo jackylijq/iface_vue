@@ -1,6 +1,7 @@
 <template>
   <div class="test-plans">
     <tree-table
+      ref="refTreeTable"
       :treeConfig="{ ...treeConfig, currentNodeKey, defaultExpandedKeys }"
       :searchConfig="searchConfig"
       :pageConfig="pageConfig"
@@ -9,6 +10,9 @@
       @exec="handleExec(selection)"
       @create="handleCreate"
     >
+      <template #treeOperate="{ node, data }">
+        <treeOpearte :node="node" :data="data" @refresh-group="handleRefreshGroup" @remove-group="handleRefreshGroup" />
+      </template>
       <template #table>
         <el-table :data="tableData" stripe style="width: 100%" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="55" />
@@ -38,73 +42,76 @@
   </div>
 </template>
 <script setup>
-import { computed, h, onActivated, reactive, ref, unref } from 'vue'
+import { computed, h, nextTick, onActivated, provide, reactive, ref, unref } from 'vue'
 import axios from '@/lin/plugin/axios'
 import treeTable from '@/component/base/treeTable/treeTable.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import treeOpearte from '../evnConfig/treeOpearte.vue'
 import DialogExec from './dialogExec.vue'
 import router from '../../router'
 import Utils from 'lin/util/util'
 
 let currentNodeKey = ref('')
 let defaultExpandedKeys = ref([])
+let groupType = 'plan'
+provide('group_type', groupType)
 
-let treeConfig = unref({
+let treeConfig = ref({
   data: [],
-  lazy: true,
   nodeKey: 'id',
   props: { isLeaf: 'leaf' },
-  async load(node, resolve) {
-    const { level } = node
-    if (level === 0) {
-      const res = await axios({
-        method: 'post',
-        url: '/iftest/condition/group/list',
-        data: {
-          project_line_id: 1,
-          parents_id: 0,
-          group_type: 'plan',
-        },
-      })
-      const nodeData = [
-        { id: '-1', label: '全部', otherData: { id: '-1' } },
-        ...res.data.datasList.map(v => ({
-          id: `${v.id}`,
-          label: v.group_name,
-          otherData: v,
-        })),
-      ]
-      resolve(nodeData)
+  // async load(node, resolve) {
+  //   const { level } = node
+  //   if (level === 0) {
+  //     const res = await axios({
+  //       method: 'post',
+  //       url: '/iftest/condition/group/list',
+  //       data: {
+  //         pro_line_id: 1,
+  //         parents_id: 0,
+  //         group_type: 'plan',
+  //       },
+  //     })
+  //     const nodeData = [
+  //       { id: '-1', label: '全部', otherData: { id: '-1' } },
+  //       ...res.data.datasList.map(v => ({
+  //         id: `${v.id}`,
+  //         label: v.group_name,
+  //         otherData: v,
+  //         leaf: true,
+  //       })),
+  //     ]
+  //     resolve(nodeData)
 
-      getTableData()
-      defaultExpandedKeys.value = [nodeData[0]?.id]
-      currentNodeKey.value = nodeData[0]?.id
-    } else if (level === 1) {
-      const { id } = node.data.otherData
-      if (id === '-1') {
-        resolve([])
-        return
-      }
-      const res = await axios({
-        method: 'post',
-        url: '/iftest/condition/group/list',
-        data: {
-          project_line_id: 1,
-          parents_id: id,
-          group_type: 'plan',
-        },
-      })
-      resolve(
-        res.data.datasList.map(v => ({
-          id: `${v.id}`,
-          label: v.group_name,
-          otherData: v,
-        })),
-      )
-    } else {
-      resolve([])
-    }
-  },
+  //     getTableData()
+  //     defaultExpandedKeys.value = [nodeData[0]?.id]
+  //     currentNodeKey.value = nodeData[0]?.id
+  //   } else if (level === 1) {
+  //     const { id } = node.data.otherData
+  //     if (id === '-1') {
+  //       resolve([])
+  //       return
+  //     }
+  //     const res = await axios({
+  //       method: 'post',
+  //       url: '/iftest/condition/group/list',
+  //       data: {
+  //         pro_line_id: 1,
+  //         parents_id: id,
+  //         group_type: 'plan',
+  //       },
+  //     })
+  //     resolve(
+  //       res.data.datasList.map(v => ({
+  //         id: `${v.id}`,
+  //         label: v.group_name,
+  //         otherData: v,
+  //       })),
+  //     )
+  //   } else {
+  //     resolve([])
+  //   }
+  // },
   nodeClickFn(data, node) {
     pageConfig.curPage = 1
     pageConfig.pageSize = 10
@@ -123,6 +130,61 @@ let treeConfig = unref({
     getTableData()
   },
 })
+
+async function loadTreeData() {
+  let res = await axios({
+    method: 'post',
+    url: '/iftest/condition/group/list',
+    data: {
+      pro_line_id: 1,
+      parents_id: 0,
+      group_type: groupType,
+    },
+  })
+
+  return [
+    { id: '-1', label: '全部', leaf: true, otherData: { id: '-1' } },
+    ...res.data.datasList.map(v => ({
+      parentId: v.parents_id,
+      id: `${v.id}`,
+      label: v.group_name,
+      leaf: false,
+      otherData: v,
+    })),
+  ]
+}
+
+let refTreeTable = ref()
+function setTreeHighlight() {
+  nextTick(() => {
+    let currentId = unref(refTreeTable).$refs.refComTree.myTree.getCurrentKey()
+    if (!currentId) {
+      currentId = '-1'
+    }
+    unref(refTreeTable).$refs.refComTree.myTree.setCurrentKey(currentId)
+  })
+}
+
+function buildTree(list, parentId = 0) {
+  let newArr = []
+  list.forEach(item => {
+    if (item.parentId == parentId) {
+      item.children = buildTree(list, item.id)
+      newArr.push(item)
+    }
+  })
+
+  return newArr
+}
+async function handleRefreshGroup() {
+  treeConfig.value.data = [
+    { id: '-1', label: '全部', leaf: true, otherData: { id: '-1' } },
+    ...buildTree(await loadTreeData()),
+  ]
+  setTreeHighlight()
+}
+
+handleRefreshGroup()
 
 // 搜索配置
 let searchConfig = computed(() => ({

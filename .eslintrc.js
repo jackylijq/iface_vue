@@ -52,6 +52,7 @@ module.exports = {
         ImportDeclaration: 'never',
       },
     ],
+    "linebreak-style": ["error", "windows"]
   },
   parserOptions: {
     parser: '@babel/eslint-parser',

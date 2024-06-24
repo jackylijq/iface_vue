@@ -50,7 +50,7 @@
     <el-button @click="refresh"><i class="el-input__icon el-icon-refresh"></i></el-button>
   </div>
   <div>
-    <el-table :data="tableData" style="width: 100%">
+    <el-table :data="tableData" stripe style="width: 100%; ">
       <el-table-column fixed type="index" :index="indexMethod" label="序号" width="80px"> </el-table-column>
       <el-table-column fixed prop="case_id" label="用例编号" :show-overflow-tooltip="true"> </el-table-column>
       <el-table-column fixed prop="case_title" label="集成用例名称" :show-overflow-tooltip="true"> </el-table-column>

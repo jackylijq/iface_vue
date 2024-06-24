@@ -44,8 +44,16 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   // 登录验证
+  let project = store.getters.project
   if (isLoginRequired(to.name) && !store.state.loggedIn) {
-    next({ path: '/login' })
+    next({
+      path: '/login',
+      query: {
+        ...to.query,
+        targetPath: to.path,
+        pro_line_id: project.id,
+      },
+    })
     return
   }
 
@@ -67,17 +75,16 @@ router.beforeEach((to, from, next) => {
     document.title = to.meta.title
   }
 
-  next()
-})
-
-router.afterEach((from, to) => {
-  // 缓存history实在router监听中变化
-  let history = JSON.parse(window.localStorage.getItem('history') || '[]')
-  if (history.some(v => v.path === to.fullPath)) {
-    to.meta.keepAlive = true
-  } else {
-    to.meta.keepAlive = false
+  // 向to中插入query中插入项目id
+  if (!to.query.pro_line_id) {
+    to.query.pro_line_id = project.id
+    router.replace({
+      path: to.path,
+      query: to.query,
+    })
+    return
   }
+  next()
 })
 
 export default router

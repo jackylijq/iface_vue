@@ -2,6 +2,8 @@
 node_modules
 /dist
 /script/.cache
+package-lock.json
+.eslintrc.js
 
 # local env files
 .env.local
@@ -22,3 +24,4 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+.env.development

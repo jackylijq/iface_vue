@@ -11,7 +11,8 @@
         <atomic-row-header :headerData="applyTableData"></atomic-row-header>
       </el-tab-pane>
       <el-tab-pane label="请求参数" name="fourth">
-        <atomic-row-query :tableData="queryTableData"></atomic-row-query>
+        <!-- <atomic-row-query :tableData="queryTableData"></atomic-row-query> -->
+        <request-table :disabled="true" style="height: 350px" :data="queryTableData" />
       </el-tab-pane>
       <el-tab-pane label="响应参数" name="fifth">
         <atomic-row-back :tableData="backTableData"></atomic-row-back>
@@ -32,6 +33,8 @@ import AtomicRowHeader from './atomic-row-header.vue'
 import AtomicRowQuery from './atomic-row-query.vue'
 import AtomicRowBack from './atomic-row-back.vue'
 import AtomicRowFun from './atomic-row-fun.vue'
+import requestTable from './requestTable.vue'
+import { JsonToTableData } from './transData'
 
 const activeName = ref('first')
 const ruleFormRef = ref()
@@ -49,19 +52,19 @@ const checkSql = reactive({
   response: '',
   request: '',
   itemSql: '',
-  childCode: ''
+  childCode: '',
 })
 const pageSize = ref(10)
 const curPage = ref(1)
 const total = ref(0)
 const checkForm = reactive({
   wait_time: '0',
-  checkType: '响应参数'
+  checkType: '响应参数',
 })
 const searchForm = reactive({
   group_id: '',
   en_name: '',
-  cn_name: ''
+  cn_name: '',
 })
 const checkFuncList = ref({})
 const formData = ref({
@@ -90,7 +93,7 @@ const headerTableData = ref([])
 const queryBaseInfo = ref([])
 const responseBaseInfo = ref([])
 const levelData = reactive({
-  level: ''
+  level: '',
 })
 const step = ref('1')
 const queryTableKey = ref(1)
@@ -100,8 +103,8 @@ const tableParams = router.query
 // 集成用例组件传过来的值
 const props = defineProps({
   rowId: {
-    type: String
-  }
+    type: String,
+  },
 })
 const getIfaceMsg = async () => {
   const sendData = { id: props.rowId, curPage: 1, pageSize: 10 }
@@ -110,7 +113,21 @@ const getIfaceMsg = async () => {
     url: '/iftest/case/standStom/list',
     data: { ...sendData },
   })
-  const { case_title, case_desc, version, case_type, wait_time, iface_id, header, request_param, response, result_variable, result_check, case_variable, generic_variables } = res1.data.datasList[0]
+  const {
+    case_title,
+    case_desc,
+    version,
+    case_type,
+    wait_time,
+    iface_id,
+    header,
+    request_param,
+    response,
+    result_variable,
+    result_check,
+    case_variable,
+    generic_variables,
+  } = res1.data.datasList[0]
   formData.value.case_title = case_title
   formData.value.case_desc = case_desc
   formData.value.version = version
@@ -120,14 +137,14 @@ const getIfaceMsg = async () => {
   if (generic_variables) {
     funcData.value = Object.values(generic_variables).map(v => ({
       ...v,
-      fun_param: JSON.stringify(v.fun_param)
+      fun_param: JSON.stringify(v.fun_param),
     }))
   }
 
   for (const key in header) {
     applyTableData.value.push({
       name: key,
-      value: header[key]
+      value: header[key],
     })
   }
   let applyTableBaseData = []
@@ -137,8 +154,16 @@ const getIfaceMsg = async () => {
     url: '/iftest/iface/iface_detail',
     data,
   })
-  const req_headersJson = res.data.req_headers.replace(RegExp('[(]', 'g'), '').replace(RegExp('[)]', 'g'), '').replace(RegExp('ObjectId', 'g'), '')
-  applyTableBaseData = JSON.parse(`[${req_headersJson}]`)
+
+  if (typeof res.data.req_headers === 'string') {
+    const req_headersJson = res.data.req_headers
+      .replace(RegExp('[(]', 'g'), '')
+      .replace(RegExp('[)]', 'g'), '')
+      .replace(RegExp('ObjectId', 'g'), '')
+    applyTableBaseData = new Function(`return [${req_headersJson}]`)()
+  } else {
+    applyTableBaseData = res.data.req_headers
+  }
   headerBaseInfo.value = applyTableBaseData
   applyTableData.value.forEach(i => {
     const sameItem = headerBaseInfo.value.find(e => e.name == i.name)
@@ -146,7 +171,11 @@ const getIfaceMsg = async () => {
       i.required = sameItem.required
     }
   })
-  queryTableData.value = backTrans(request_param, 'query')
+
+  new JsonToTableData().postMessage([JSON.parse(JSON.stringify(request_param))]).then(res => {
+    queryTableData.value = res
+  })
+  // queryTableData.value = backTrans(request_param, 'query')
   backTableData.value = backTrans(response, 'response')
   for (const key in case_variable) {
     addCaseVariable(queryTableData.value, key)
@@ -233,7 +262,7 @@ const firstTrans = function (val, type) {
       if (item.valueType == 'object') {
         obj[item.name] = {}
       } else if (item.valueType == 'null') {
-        obj[item.name] = ''
+        obj[item.name] = !item.value ? null : item.value
       } else if (item.valueType == 'number') {
         if (item.value == undefined) {
           obj[item.name] = null
@@ -250,9 +279,21 @@ const firstTrans = function (val, type) {
       if (typeof item.value === 'number' && item.value == 0) {
         obj[item.name] = 0
       }
-    } else if (item.valueType == 'array' && item.children && (item.children.length == 1 && type == 'query' || item.children.length > 1 && type == 'query' && item.children[0].name !== '0' || item.children.length > 0 && type == 'response')) {
+    } else if (
+      item.valueType == 'array' &&
+      item.children &&
+      ((item.children.length == 1 && type == 'query') ||
+        (item.children.length > 1 && type == 'query' && item.children[0].name !== '0') ||
+        (item.children.length > 0 && type == 'response'))
+    ) {
       obj[item.name] = [firstTrans(item.children, type)]
-    } else if (item.valueType == 'array' && item.children && item.children.length > 1 && type == 'query' && item.children[0].name == '0') {
+    } else if (
+      item.valueType == 'array' &&
+      item.children &&
+      item.children.length > 1 &&
+      type == 'query' &&
+      item.children[0].name == '0'
+    ) {
       obj[item.name] = []
       item.children.forEach((el, i) => {
         obj[item.name].push(firstTrans(el.children, type))
@@ -267,11 +308,15 @@ const firstTrans = function (val, type) {
 const backTrans = function (obj, type) {
   const arr = []
   for (const key in obj) {
-    if (Array.isArray(obj[key]) && typeof obj[key][0] === 'object' && (obj[key].length <= 1 && type == 'query' || type == 'response')) {
+    if (
+      Array.isArray(obj[key]) &&
+      typeof obj[key][0] === 'object' &&
+      ((obj[key].length <= 1 && type == 'query') || type == 'response')
+    ) {
       arr.push({
         name: key,
         valueType: 'array',
-        children: backTrans(obj[key][0], type)
+        children: backTrans(obj[key][0], type),
       })
     } else if (Array.isArray(obj[key]) && typeof obj[key][0] === 'object' && obj[key].length > 1 && type == 'query') {
       console.log(obj[key], 'obj[key]')
@@ -286,19 +331,19 @@ const backTrans = function (obj, type) {
       arr.push({
         name: key,
         valueType: 'array',
-        children: childrenArr
+        children: childrenArr,
       })
     } else if (Array.isArray(obj[key]) && typeof obj[key][0] !== 'object') {
       arr.push({
         name: key,
         valueType: 'array',
-        value: obj[key]
+        value: obj[key],
       })
     } else if (typeof obj[key] === 'object' && !Array.isArray(obj[key]) && obj[key] !== null) {
       arr.push({
         name: key,
         valueType: 'object',
-        children: backTrans(obj[key], type)
+        children: backTrans(obj[key], type),
       })
     } else if (obj[key] == null) {
       const baseInfo = type == 'query' ? queryBaseInfo.value : responseBaseInfo.value
@@ -307,32 +352,32 @@ const backTrans = function (obj, type) {
         arr.push({
           name: key,
           valueType: 'array',
-          value: ''
+          value: '',
         })
       } else {
         arr.push({
           name: key,
           valueType: 'string',
-          value: ''
+          value: '',
         })
       }
     } else if (typeof obj[key] === 'number' && obj[key] == 0) {
       arr.push({
         name: key,
         value: 0,
-        valueType: typeof obj[key]
+        valueType: typeof obj[key],
       })
     } else if (typeof obj[key] === 'boolean') {
       arr.push({
         name: key,
         value: obj[key],
-        valueType: typeof obj[key]
+        valueType: typeof obj[key],
       })
     } else {
       arr.push({
         name: key,
         value: obj[key] || '',
-        valueType: typeof obj[key]
+        valueType: typeof obj[key],
       })
     }
   }
@@ -341,7 +386,7 @@ const backTrans = function (obj, type) {
 
 function checkSqlRequest(val, ischildren) {
   const obj = {
-    check_field: []
+    check_field: [],
   }
   if (ischildren) obj.check_sql = ''
   val.map(item => {
@@ -379,8 +424,8 @@ const responseCheck = function (val) {
 }
 const getCheckBaseInfo = async function () {
   const data = {
-    project_line_id: 1,
-    group_type: 'plan'
+    pro_line_id: 1,
+    group_type: 'plan',
   }
   const res = await axios({
     method: 'post',
@@ -391,13 +436,13 @@ const getCheckBaseInfo = async function () {
   res.data.datasList.map(item => {
     checkFuncList.value.push({
       label: item.group_name,
-      value: item.id
+      value: item.id,
     })
   })
 
   const param = {
     curPage: 1,
-    pageSize: 10
+    pageSize: 10,
   }
   const res2 = await axios({
     method: 'post',
@@ -424,13 +469,23 @@ let getIfaceDetail = async function (iface_id) {
   formData.value.name = iface_name
   formData.value.address = request_url
   formData.value.method = request_method
-  const req_headersJson = req_headers.replace(RegExp('[(]', 'g'), '').replace(RegExp('[)]', 'g'), '').replace(RegExp('ObjectId', 'g'), '')
-  applyTableBaseData = JSON.parse(`[${req_headersJson}]`)
+  if (typeof req_headers === 'string') {
+    const req_headersJson = req_headers
+      .replace(RegExp('[(]', 'g'), '')
+      .replace(RegExp('[)]', 'g'), '')
+      .replace(RegExp('ObjectId', 'g'), '')
+    applyTableBaseData = new Function(`return [${req_headersJson}]`)()
+  } else {
+    applyTableBaseData = req_headers
+  }
   if (typeof req_body === 'string' && req_body !== '') {
     if (req_body.indexOf('ObjectId') !== -1) {
-      const req_bodyJson = req_body.replace(RegExp('[(]', 'g'), '').replace(RegExp('[)]', 'g'), '').replace(RegExp('ObjectId', 'g'), '')
+      const req_bodyJson = req_body
+        .replace(RegExp('[(]', 'g'), '')
+        .replace(RegExp('[)]', 'g'), '')
+        .replace(RegExp('ObjectId', 'g'), '')
       queryTableBaseData = JSON.parse(`[${req_bodyJson}]`)
-      queryTableBaseData.forEach(item => item.description = item.desc)
+      queryTableBaseData.forEach(item => (item.description = item.desc))
     } else {
       const queryJson = JSON.parse(req_body.replace(/[\r|\n|\t]/g, ''))
       if (queryJson.items) {
@@ -465,14 +520,14 @@ function getQueryBaseArray(val, type) {
         name: item.name,
         type: item.type,
         required: item.required,
-        description: item.description
+        description: item.description,
       })
     } else if (type == 'response') {
       responseBaseInfo.value.push({
         name: item.name,
         type: item.type,
         required: item.required,
-        description: item.description
+        description: item.description,
       })
     }
     if (item.children) {
@@ -486,7 +541,7 @@ let transObj = function (obj) {
     const itemObj = {
       name: key,
       type: obj.properties[key].type,
-      description: obj.properties[key].description || ''
+      description: obj.properties[key].description || '',
     }
     if (obj.required && obj.required.includes(key) == true) {
       itemObj.required = 1
@@ -513,7 +568,7 @@ let objToTree = function (obj) {
           type: obj[key].type,
           description: obj[key].description,
           children: objToTree(obj[key].properties),
-          required: 0
+          required: 0,
         })
       } else if (obj[key].items) {
         arr.push({
@@ -522,7 +577,7 @@ let objToTree = function (obj) {
           description: obj[key].description,
           children: objToTree(obj[key].items.properties),
           required: 0,
-          format: `item 类型:${obj[key].items.type}`
+          format: `item 类型:${obj[key].items.type}`,
         })
       } else {
         const newobj = {
@@ -531,12 +586,12 @@ let objToTree = function (obj) {
           description: obj[key].description,
           required: 0,
         }
-        obj[key].format ? newobj.format = obj[key].format : ''
+        obj[key].format ? (newobj.format = obj[key].format) : ''
         arr.push(newobj)
       }
     } else {
       arr.push({
-        key: obj[key]
+        key: obj[key],
       })
     }
   }
@@ -616,14 +671,14 @@ const getEditData = async function () {
 
   funcData.value = Object.values(JSON.parse(tableParams.generic_variables)).map(v => ({
     ...v,
-    fun_param: JSON.stringify(v.fun_param)
+    fun_param: JSON.stringify(v.fun_param),
   }))
 
   applyTableData.value = []
   for (var key in tableParams.header) {
     applyTableData.value.push({
       name: key,
-      value: tableParams.header[key]
+      value: tableParams.header[key],
     })
   }
   let applyTableBaseData = []
@@ -633,8 +688,17 @@ const getEditData = async function () {
     url: '/iftest/iface/iface_detail',
     data,
   })
-  const req_headersJson = res.data.req_headers.replace(RegExp('[(]', 'g'), '').replace(RegExp('[)]', 'g'), '').replace(RegExp('ObjectId', 'g'), '')
-  applyTableBaseData = JSON.parse(`[${req_headersJson}]`)
+
+  if (typeof res.data.req_headers === 'string') {
+    const req_headersJson = res.data.req_headers
+      .replace(RegExp('[(]', 'g'), '')
+      .replace(RegExp('[)]', 'g'), '')
+      .replace(RegExp('ObjectId', 'g'), '')
+    applyTableBaseData = new Function(`return [${req_headersJson}]`)()
+  } else {
+    applyTableBaseData = res.data.req_headers
+  }
+
   headerBaseInfo.value = applyTableBaseData
   applyTableData.value.forEach(i => {
     const sameItem = headerBaseInfo.value.find(e => e.name == i.name)
@@ -660,7 +724,7 @@ const getEditData = async function () {
   const param = {
     curPage: 1,
     pageSize: 10,
-    en_name: tableParams.result_check.third_fun.split(',')
+    en_name: tableParams.result_check.third_fun.split(','),
   }
   const res2 = await axios({
     method: 'post',
@@ -692,11 +756,10 @@ function getRequestAllChecked(val) {
 onMounted(() => {
   getAllMsg()
 })
-
 </script>
 <style lang="css" scoped>
 .atomicDetail {
-  padding: 0px 15px
+  padding: 0px 15px;
 }
 
 .widthMax {

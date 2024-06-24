@@ -2,13 +2,89 @@
   <div class="tableHeader" v-if="!seeDetail">
     <div class="tableSetting">
       <el-tooltip effect="dark" content="添加用例" placement="top">
-        <img src="../../assets/image/icon/add.svg" @click="addCasesShow = true" alt="" />
+        <svg
+          @click="addCasesShow = true"
+          style="margin: 0 5px"
+          class="icon"
+          width="18"
+          height="28"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M512 57.677643C261.084506 57.677643 57.677643 261.084506 57.677643 512s203.406863 454.322357 454.322357 454.322357 454.322357-203.406863 454.322357-454.322357S762.915494 57.677643 512 57.677643z"
+            fill="#666666"
+          />
+          <path
+            d="M444.236756 461.703321c1.169525-126.269671 9.428964-220.357879 67.759695-220.357879 58.338718 0 66.599931 94.088208 67.769455 220.357879 124.793123 1.218329 217.429629 9.431626 217.42963 64.839431 0 55.400707-92.636506 63.614003-217.42963 64.831446-1.169525 126.274995-9.429851 220.358766-67.769455 220.358766-58.331619 0-66.591057-94.083771-67.759695-220.358766-124.798447-1.217442-217.429629-9.430738-217.429629-64.831446 0-55.407806 92.630295-63.621102 217.429629-64.839431z"
+            fill="#FFFFFF"
+          />
+        </svg>
       </el-tooltip>
       <el-tooltip effect="dark" content="导入计划" placement="top">
-        <img src="../../assets/image/icon/import.svg" @click="addPlanShow = true" style="width: 28px" alt="" />
+        <svg
+          @click="addPlanShow = true"
+          style="margin: 0 5px"
+          class="icon"
+          width="18"
+          height="28"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M510.495057 625.379161c-212.404575 0-384.594523 43.293726-384.594523 96.69435s172.189948 96.69435 384.594523 96.69435c212.413449 0 384.603397-43.293726 384.603397-96.69435s-172.189948-96.69435-384.603397-96.69435z"
+            fill="#666666"
+            opacity=".7"
+          />
+          <path
+            d="M513.496957 772.937206c-212.404575 0-384.594523 43.293726-384.594524 96.69435s172.189948 96.69435 384.594524 96.69435c212.413449 0 384.603397-43.293726 384.603397-96.69435s-172.189948-96.69435-384.603397-96.69435z"
+            fill="#666666"
+            opacity=".7"
+          />
+          <path
+            d="M618.71695 433.256707c49.586801-49.587688 79.021033-100.554315 65.737428-113.83792-13.283605-13.283605-64.250232 16.150627-113.83792 65.737428a494.475757 494.475757 0 0 0-4.560084 4.62131c2.942447-22.003577 4.569844-46.168735 4.569844-71.524714 0-91.955023-21.382433-168.236811-49.389809-182.579022-26.749116-20.460478-85.436562-34.664263-153.536998-34.664264-93.313553 0-168.96 26.664818-168.96 59.567695s75.646447 59.576568 168.96 59.576569c35.771674 0 68.946967-3.919418 96.259549-10.606475-7.072166 30.516797-11.244478 68.081802-11.244478 108.705497 0 27.143986 1.863432 52.921456 5.208735 76.14425a476.662239 476.662239 0 0 0-8.997713-9.242621c-49.586801-49.586801-100.554315-79.021033-113.83792-65.737428-13.283605 13.283605 16.150627 64.25112 65.738315 113.83792 41.478211 41.479099 83.919196 68.85557 104.468409 68.93277 2.094142 0.706329 4.221116 1.068367 6.375598 1.068367 2.608804 0 5.179452-0.531522 7.699522-1.563507 21.952998-3.875938 61.059328-30.14766 99.347522-68.435855z"
+            fill="#666666"
+          />
+        </svg>
       </el-tooltip>
       <el-tooltip effect="dark" content="保存计划" placement="top">
-        <img src="../../assets/image/icon/save.svg" @click="submit" style="width: 22px" alt="" />
+        <svg
+          @click="submit"
+          style="margin: 0 5px"
+          width="18"
+          height="28"
+          viewBox="0 0 1024 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill="#666666"
+            d="M971.95 152.88c0-55.14-44.86-99.99-100-99.99H797v230c0 38.6-30.59 70-68.18 70H295.18c-37.6 0-68.18-31.4-68.18-70v-230h-75c-26.62 0-51.71 10.43-70.64 29.36C62.42 101.18 52 126.27 52 152.9l0.05 720c0 55.14 44.86 99.99 100 99.99H872c26.62 0 51.71-10.43 70.64-29.36C961.58 924.6 972 899.51 972 872.88l-0.05-720z"
+          />
+          <path
+            fill="#666666"
+            d="M295.18 312.89h433.64c15.54 0 28.18-13.46 28.18-30v-230H267v230c0 16.54 12.64 30 28.18 30z m325.1-160.3c0-11.05 8.95-20 20-20s20 8.95 20 20v60c0 11.05-8.95 20-20 20s-20-8.95-20-20v-60z"
+          />
+        </svg>
+      </el-tooltip>
+
+      <el-tooltip effect="dark" content="批量删除" placement="top">
+        <svg
+          @click="batchDelete"
+          style="margin: 0 5px"
+          width="18"
+          height="28"
+          viewBox="0 0 1025 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill="#666666"
+            d="M962.56 184.768H61.44c-33.792 0-61.44 27.648-61.44 61.44 0 33.792 27.648 61.44 61.44 61.44h81.92v597.056c0 42.24 34.56 76.8 76.8 76.8h583.68c42.24 0 76.8-34.56 76.8-76.8V307.648h81.92c33.792 0 61.44-27.648 61.44-61.44 0-33.792-27.648-61.44-61.44-61.44zM364.288 834.752c0 21.376-17.408 38.784-38.784 38.784-21.312 0-38.784-17.408-38.784-38.784V446.72c0-21.376 17.472-38.784 38.784-38.784 10.688 0 20.352 4.352 27.392 11.392a38.4896 38.4896 0 0 1 11.392 27.392v388.032z m186.496 0c0 21.376-17.472 38.784-38.784 38.784-21.312 0-38.784-17.408-38.784-38.784V446.72c0-21.376 17.472-38.784 38.784-38.784 10.624 0 20.352 4.352 27.392 11.392a38.4896 38.4896 0 0 1 11.392 27.392v388.032z m186.496 0c0 21.376-17.472 38.784-38.784 38.784-21.376 0-38.784-17.408-38.784-38.784V446.72c0-21.376 17.408-38.784 38.784-38.784 10.624 0 20.352 4.352 27.392 11.392a38.4896 38.4896 0 0 1 11.392 27.392v388.032zM433.536 136.256h156.928c25.792 0 46.912-21.12 46.912-46.912s-21.12-46.912-46.912-46.912H433.536c-25.792 0-46.912 21.12-46.912 46.912s21.184 46.912 46.912 46.912z"
+          />
+        </svg>
       </el-tooltip>
     </div>
   </div>
@@ -43,10 +119,24 @@
       <el-button type="primary" @click="submit">保存计划</el-button>
     </section>
 
-    <el-table :data="form.tableData" stripe style="width: 100%">
-      <el-table-column :show-overflow-tooltip="false" prop="id" label="集成id" width="100px" />
-      <el-table-column :show-overflow-tooltip="true" prop="case_title" label="集成用例名称" min-width="150px">
-        <template #default="{row}">
+    <el-table
+      ref="tableRef"
+      :key="refreshKey"
+      :data="form.tableData"
+      stripe
+      style="width: 100%"
+      row-key="id"
+      @selection-change="handleSelectionChange"
+      :row-class-name="tableRowClassName"
+    >
+      <el-table-column type="selection" width="55" />
+      <el-table-column :show-overflow-tooltip="false" prop="id" label="集成id" width="100px">
+        <template #default="{ row }">
+          <span class="integration_id">{{ row.id }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column :show-overflow-tooltip="true" prop="case_title" label="集成用例名称1" min-width="150px">
+        <template #default="{ row }">
           <a style="color: #3963bc" @click="handleRowClick(row)">{{ row && row.case_title }}</a>
         </template>
       </el-table-column>
@@ -55,10 +145,10 @@
       <el-table-column :show-overflow-tooltip="true" prop="case_type" label="用例状态" min-width="100px" />
       <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="更新人员" min-width="100px" />
       <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" min-width="150px" />
-      <el-table-column label="操作" width="200px" v-if="!seeDetail">
+      <el-table-column label="操作" width="100px" v-if="!seeDetail">
         <template #default="scope">
           <!-- 上移动 -->
-          <svg
+          <!-- <svg
             v-if="scope.$index > 0"
             t="1676445827069"
             class="icon"
@@ -75,10 +165,10 @@
               fill="#515151"
               p-id="4053"
             ></path>
-          </svg>
+          </svg> -->
 
           <!-- 下移 -->
-          <svg
+          <!-- <svg
             v-if="scope.$index < form.tableData.length - 1"
             t="1676445887024"
             class="icon"
@@ -95,7 +185,7 @@
               fill="#515151"
               p-id="4352"
             ></path>
-          </svg>
+          </svg> -->
 
           <!-- 删除 -->
           <svg
@@ -141,7 +231,7 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, onMounted, onActivated, computed } from 'vue'
+import { ref, reactive, onMounted, onActivated, computed, unref, nextTick } from 'vue'
 import axios from '@/lin/plugin/axios'
 import store from '../../store'
 import DialogAddCases from './dialogAddCases.vue'
@@ -149,6 +239,27 @@ import dialogAddPlan from './dialogAddPlan.vue'
 import { ElMessage } from 'element-plus'
 import router from '../../router'
 import emitter from 'lin/util/emitter'
+import { createSortable } from './sortJs'
+
+let refreshKey = ref(1)
+let tableRef = ref()
+onMounted(() => {
+  createSortable(tableRef.value.$el.querySelector('.el-table__body-wrapper .el-table__body tbody'))
+})
+
+let multipleSelection = ref([])
+function tableRowClassName({ row, rowIndex }) {
+  return multipleSelection.value.some(v => v.id === row.id) ? 'selected' : ''
+}
+function handleSelectionChange(val) {
+  multipleSelection.value = val
+}
+
+function batchDelete() {
+  form.tableData = form.tableData.filter(v => !unref(multipleSelection).some(e => e.id === v.id))
+  multipleSelection.value = []
+}
+
 let rules = reactive({
   plan_title: [{ required: true, message: '测试集标题不能为空', trigger: 'change' }],
 })
@@ -186,7 +297,7 @@ let getGroupList = async () => {
   let res = await axios({
     method: 'POST',
     url: '/iftest/condition/group/list',
-    data: { project_line_id: 1, group_type: 'scene' },
+    data: { pro_line_id: 1, group_type: 'scene' },
   })
 
   groupList.value = transferTreeData(res.data.datasList, 0, 'id', 'parents_id')
@@ -240,15 +351,20 @@ onActivated(async () => {
       method: 'POST',
       url: '/iftest/case/scene/list',
       data: {
-        id: scene_case_list.split(','),
+        // id: scene_case_list.split(','),
+        id: typeof scene_case_list === 'string' ? scene_case_list.split(',') : scene_case_list,
         curPage: 1,
-        pageSize: scene_case_list.split(',').length,
+        // pageSize: scene_case_list.split(',').length,
+        pageSize: (typeof scene_case_list === 'string' ? scene_case_list.split(',') : scene_case_list).length,
       },
     })
     if (scene_case_list.length) {
-      form.tableData = scene_case_list.split(',').map(v => {
-        return res.data.datasList.find(e => v == e.id)
-      }).filter(v=>!!v)
+      // form.tableData = scene_case_list.split(',').map(v => {
+      form.tableData = (typeof scene_case_list === 'string' ? scene_case_list.split(',') : scene_case_list)
+        .map(v => {
+          return res.data.datasList.find(e => v == e.id)
+        })
+        .filter(v => !!v)
     }
   }
 })
@@ -273,7 +389,6 @@ let handleSave = ({ selections }) => {
 }
 
 const handleImport = datasList => {
-  console.log(form.tableData)
   const differentObjects = datasList.filter(obj1 => !form.tableData.some(obj2 => obj1.id === obj2?.id))
   form.tableData.push(...differentObjects)
 }
@@ -283,14 +398,26 @@ let submit = async () => {
   await refForm.value.validate()
 
   let { group_id, plan_desc, plan_title, tableData, id } = form
+
+  // 拖拽排序之后，直接从dom上面获取id
+  let scene_case_list = [...tableRef.value.$el.querySelectorAll('span.integration_id')].map(v => v.innerText)
+  let validateSceneCaseList = scene_case_list.every(e => tableData.some(v => v.id == e))
+  if (!validateSceneCaseList) {
+    ElMessage({
+      type: 'error',
+      message: '集成id不一致，请刷新页面',
+    })
+    return
+  }
+
   let data = {
-    project_line_id: 1,
+    pro_line_id: 1,
     group_id,
     id,
-    edit_uid: window.sessionStorage.getItem('userName'),
+    edit_uid: store.getters.user.username,
     plan_title,
     plan_desc,
-    scene_case_list: tableData.map(v => v.id),
+    scene_case_list,
   }
 
   let url = form.id ? '/iftest/case/plan/modify' : '/iftest/case/plan/add'
@@ -342,7 +469,7 @@ let submit = async () => {
   }
 }
 .tableHeader {
-  width: 100%;
+  width: calc(100% - 40px);
   height: 47px;
   border-bottom: 1px solid #e4e7ed;
   display: flex;

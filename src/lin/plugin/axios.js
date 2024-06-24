@@ -13,7 +13,7 @@ import { getToken, saveAccessToken } from '@/lin/util/token'
 
 const config = {
   baseURL: Config.baseURL || '',
-  timeout: 5 * 1000, // 请求超时时间设置
+  timeout: 50 * 1000, // 请求超时时间设置
   crossDomain: true,
   // withCredentials: true, // Check cross-site Access-Control
   // 定义可获得的http响应状态码
@@ -30,6 +30,51 @@ const config = {
 function refreshTokenException(code) {
   const codes = [10000, 10042, 10050, 10052, 10012]
   return codes.includes(code)
+}
+
+function setProLineId(url, data = {}) {
+  for (let key in data) {
+    if (data[key] === '' || data[key] === null) {
+      data[key] = undefined
+    }
+  }
+
+  const urls = [
+    '/iftest/condition/group/list',
+    '/iftest/condition/group/add',
+    '/iftest/product/proModify',
+    '/iftest/product/proAdd',
+    '/iftest/case/plan/modify',
+    '/iftest/case/plan/add',
+    '/iftest/case/scene/list',
+    '/iftest/case/scene/add',
+    '/iftest/product/proList',
+    '/iftest/condition/env/list',
+    '/iftest/condition/env/add',
+    '/iftest/statistics/summaryAll',
+    '/iftest/statistics/summarySeven',
+    '/iftest/statistics/summaryPro',
+    '/iftest/statistics/summaryOpenapi',
+    '/cms/user/user_list',
+    '/cms/user/register',
+    '/iftest/iface/iface_list',
+    '/iftest/iface/project/list',
+    '/iftest/case/standStom/list',
+    '/iftest/case/plan/list',
+    '/iftest/case/plan/result/list',
+    '/iftest/statistics/summaryUpdate'
+  ]
+
+  // 不传pro_line_id字段
+  const noUrls = []
+  if (urls.includes(url)) {
+    let { id } = store.getters.project
+    data.pro_line_id = id
+  } else if (noUrls.includes(url)) {
+    delete data.pro_line_id
+  }
+
+  return data
 }
 
 // 创建请求实例
@@ -54,10 +99,12 @@ _axios.interceptors.request.use(
       if (!reqConfig.params) {
         reqConfig.params = reqConfig.data || {}
       }
+      reqConfig.params = setProLineId(reqConfig.url, reqConfig.params)
     } else if (reqConfig.method === 'post') {
       if (!reqConfig.data) {
         reqConfig.data = reqConfig.params || {}
       }
+      reqConfig.data = setProLineId(reqConfig.url, reqConfig.data)
 
       // 检测是否包含文件类型, 若包含则进行 formData 封装
       let hasFile = false
@@ -101,7 +148,30 @@ _axios.interceptors.request.use(
 // Add a response interceptor
 _axios.interceptors.response.use(
   async res => {
+
     if (res.status.toString().charAt(0) === '2') {
+      // 如果code401，需要错误提示
+      if (res.data.code == '401') {
+        ElMessage.error(res.data.message)
+        throw new Error(res.data.message)
+      } else if (res.data.code == 0) {
+        res.data.code = 200
+      }
+
+      // 处理时间格式
+      // try {
+
+      //   res.data.data.datasList = res.data.data.datasList.map(v => {
+      //     let obj = v;
+      //     if (v.update_time) {
+      //       v.update_time = new Date(v.update_time).toLocaleDateString() + " " + new Date(v.update_time).toLocaleTimeString()
+      //     }
+      //     return obj
+      //   })
+      // } catch (err) {
+
+      // }
+
       return res.data
     }
 
@@ -169,6 +239,7 @@ _axios.interceptors.response.use(
     if (!error.response) {
       ElMessage.error('请检查 API 是否异常')
       console.log('error', error)
+      return Promise.reject(error)
     }
 
     // 判断请求超时

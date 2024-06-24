@@ -90,12 +90,12 @@ export default {
       // }
     }
 
-    emitter.on('noReuse', () => {
-      this.$refs.operate.style.height = '86px'
-    })
-    emitter.on('hasReuse', () => {
-      this.$refs.operate.style.height = '45px'
-    })
+    // emitter.on('noReuse', () => {
+    //   this.$refs.operate.style.height = '45px'
+    // })
+    // emitter.on('hasReuse', () => {
+    //   this.$refs.operate.style.height = '45px'
+    // })
   },
   computed: {
     elMenuCollapse() {
@@ -208,7 +208,7 @@ export default {
       align-items: center;
       background: $header-background;
       padding-left: 20px;
-      height: 86px;
+      height: 45px;
 
       .iconfont {
         font-size: 16px;

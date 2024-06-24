@@ -1,6 +1,7 @@
 <template>
   <div class="integration-cases-list">
     <tree-table
+      ref="refTreeTable"
       :treeConfig="{ ...treeConfig, currentNodeKey, defaultExpandedKeys }"
       :searchConfig="searchConfig"
       :pageConfig="pageConfig"
@@ -8,17 +9,21 @@
       @size-change="sizeChange"
       @current-change="currentChange"
     >
+      <template #treeOperate="{ node, data }">
+        <treeOpearte :node="node" :data="data" @refresh-group="handleRefreshGroup" @remove-group="handleRefreshGroup" />
+      </template>
       <template #table>
         <el-table :data="tableData" stripe style="width: 100%">
           <el-table-column :show-overflow-tooltip="false" prop="id" label="用例id" min-width="100px" />
-          <el-table-column :show-overflow-tooltip="true" prop="case_title" label="集成用例名称" min-width="150px">
+          <el-table-column :show-overflow-tooltip="true" prop="case_title" label="集成用例名称" min-width="120px">
             <template #default="{ row }">
               <a style="color: #3963bc" @click="handleRowClick(row)">{{ row.case_title }}</a>
             </template>
           </el-table-column>
-          <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="集成用例描述" min-width="250px" />
-          <el-table-column :show-overflow-tooltip="true" prop="atom_case_num" label="原子用例数量" min-width="150px" />
-          <el-table-column :show-overflow-tooltip="true" label="用例状态" min-width="120px">
+          <el-table-column :show-overflow-tooltip="true" prop="case_desc" label="集成用例描述" min-width="150px" />
+          <el-table-column :show-overflow-tooltip="true" prop="atom_case_num" label="模板数量" min-width="100px" />
+          <el-table-column :show-overflow-tooltip="true" prop="plan_num" label="计划数量" min-width="100px" />
+          <el-table-column :show-overflow-tooltip="true" label="用例状态" min-width="100px">
             <template #default="{ row, column, $index }">
               <span :class="{ '--pass': row.case_status === 'pass', '--fail': row.case_status === 'failed' }">{{
                 row.case_status_text
@@ -27,8 +32,8 @@
           </el-table-column>
           <el-table-column :show-overflow-tooltip="true" prop="exe_result" label="执行结果" min-width="100px" />
           <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="更新人员" min-width="100px" />
-          <!-- <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" min-width="150px" />
-          <el-table-column :show-overflow-tooltip="true" prop="exe_time" label="执行时间" min-width="150px" /> -->
+          <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" min-width="100px" />
+          <!-- <el-table-column :show-overflow-tooltip="true" prop="exe_time" label="执行时间" min-width="150px" /> -->
 
           <el-table-column label="操作" width="370px">
             <template #default="scope">
@@ -42,109 +47,114 @@
         </el-table>
       </template>
     </tree-table>
+
+    <atomicCasesTestDialog v-if="testDialogVisible" v-model="testDialogVisible" @submit="testFn" />
   </div>
 </template>
 <script setup>
 import treeTable from '@/component/base/treeTable/treeTable.vue'
 import axios from '@/lin/plugin/axios'
 import router from '../../router'
-import { computed, onActivated, reactive, ref, unref } from 'vue'
+import { computed, nextTick, onActivated, provide, reactive, ref, unref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import treeOpearte from '../evnConfig/treeOpearte.vue'
 import Utils from 'lin/util/util'
-
+import atomicCasesTestDialog from '../atomicCases/atomic-cases-test-dialog.vue'
 let currentNodeKey = ref('')
 let defaultExpandedKeys = ref([])
 let remark = ref('')
-
-let treeConfig = unref({
+let groupType = 'scene'
+provide('group_type', groupType)
+let treeConfig = ref({
   data: [],
-  lazy: true,
+  lazy: false,
   nodeKey: 'id',
   props: { isLeaf: 'leaf' },
-  async load(node, resolve) {
-    const { level } = node
-    if (level === 0) {
-      const res = await axios({
-        method: 'post',
-        url: '/iftest/condition/group/list',
-        data: {
-          project_line_id: 1,
-          parents_id: 0,
-          group_type: 'scene',
-        },
-      })
-      const nodeData = [
-        { id: '-1', label: '全部', otherData: { id: '-1' } },
-        ...res.data.datasList.map(v => ({
-          id: `${v.id}`,
-          label: v.group_name,
-          otherData: v,
-        })),
-      ]
-      resolve(nodeData)
+  // async load(node, resolve) {
+  //   const { level } = node
+  //   if (level === 0) {
+  //     const res = await axios({
+  //       method: 'post',
+  //       url: '/iftest/condition/group/list',
+  //       data: {
+  //         pro_line_id: 1,
+  //         parents_id: 0,
+  //         group_type: 'scene',
+  //       },
+  //     })
+  //     const nodeData = [
+  //       { id: '-1', label: '全部', otherData: { id: '-1' } },
+  //       ...res.data.datasList.map(v => ({
+  //         id: `${v.id}`,
+  //         label: v.group_name,
+  //         otherData: v,
+  //         leaf: true,
+  //       })),
+  //     ]
+  //     resolve(nodeData)
 
-      getTableData()
-      defaultExpandedKeys.value = [nodeData[0]?.id]
-      currentNodeKey.value = nodeData[0]?.id
-    } else if (level === 1) {
-      const { id } = node.data.otherData
-      if (id === '-1') {
-        resolve([])
-        return
-      }
-      const res = await axios({
-        method: 'post',
-        url: '/iftest/condition/group/list',
-        data: {
-          project_line_id: 1,
-          parents_id: id,
-          group_type: 'scene',
-        },
-      })
-      resolve(
-        res.data.datasList.map(v => ({
-          id: `${v.id}`,
-          label: v.group_name,
-          otherData: v,
-        })),
-      )
-    } else {
-      resolve([])
-    }
-  },
+  //     getTableData()
+  //     defaultExpandedKeys.value = [nodeData[0]?.id]
+  //     currentNodeKey.value = nodeData[0]?.id
+  //   } else if (level === 1) {
+  //     const { id } = node.data.otherData
+  //     if (id === '-1') {
+  //       resolve([])
+  //       return
+  //     }
+  //     const res = await axios({
+  //       method: 'post',
+  //       url: '/iftest/condition/group/list',
+  //       data: {
+  //         pro_line_id: 1,
+  //         parents_id: id,
+  //         group_type: 'scene',
+  //       },
+  //     })
+  //     resolve(
+  //       res.data.datasList.map(v => ({
+  //         id: `${v.id}`,
+  //         label: v.group_name,
+  //         otherData: v,
+  //       })),
+  //     )
+  //   } else {
+  //     resolve([])
+  //   }
+  // },
   async nodeClickFn(data, node) {
     pageConfig.curPage = 1
     pageConfig.pageSize = 10
     const { level } = node
     // canCreate.value = level != 3
-    console.log(data)
+    // console.log(data)
     if (level === 1) {
       if (data.id === '-1') {
         tableParams.value = {}
       } else {
-        const res = await axios({
-          method: 'post',
-          url: '/iftest/condition/group/list',
-          data: {
-            project_line_id: 1,
-            parents_id: data.id,
-            group_type: 'scene',
-          },
-        })
-        const childNodeId = []
-        const { datasList } = res.data
-        datasList.forEach(item => {
-          childNodeId.push(item.id)
-        })
+        // const res = await axios({
+        //   method: 'post',
+        //   url: '/iftest/condition/group/list',
+        //   data: {
+        //     pro_line_id: 1,
+        //     parents_id: data.id,
+        //     group_type: 'scene',
+        //   },
+        // })
+        // const childNodeId = []
+        // const { datasList } = res.data
+        // datasList.forEach(item => {
+        //   childNodeId.push(item.id)
+        // })
         tableParams.value = {
-          case_group_id: [data.otherData.id, ...childNodeId],
+          case_group_id: [data.otherData.id],
         }
       }
       currentNodeKey.value = data.otherData.id
     } else if (level === 2) {
       const { id: group_id, project_id } = data.otherData
       tableParams.value = {
-        case_group_id: [ group_id ],
+        case_group_id: [group_id],
       }
       currentNodeKey.value = group_id
     }
@@ -152,6 +162,61 @@ let treeConfig = unref({
     getTableData()
   },
 })
+
+async function loadTreeData() {
+  let res = await axios({
+    method: 'post',
+    url: '/iftest/condition/group/list',
+    data: {
+      pro_line_id: 1,
+      parents_id: 0,
+      group_type: groupType,
+    },
+  })
+
+  return [
+    { id: '-1', label: '全部', leaf: true, otherData: { id: '-1' } },
+    ...res.data.datasList.map(v => ({
+      parentId: v.parents_id,
+      id: `${v.id}`,
+      label: v.group_name,
+      leaf: false,
+      otherData: v,
+    })),
+  ]
+}
+
+let refTreeTable = ref()
+function setTreeHighlight() {
+  nextTick(() => {
+    let currentId = unref(refTreeTable).$refs.refComTree.myTree.getCurrentKey()
+    if (!currentId) {
+      currentId = '-1'
+    }
+    unref(refTreeTable).$refs.refComTree.myTree.setCurrentKey(currentId)
+  })
+}
+
+function buildTree(list, parentId = 0) {
+  let newArr = []
+  list.forEach(item => {
+    if (item.parentId == parentId) {
+      item.children = buildTree(list, item.id)
+      newArr.push(item)
+    }
+  })
+
+  return newArr
+}
+async function handleRefreshGroup() {
+  treeConfig.value.data = [
+    { id: '-1', label: '全部', leaf: true, otherData: { id: '-1' } },
+    ...buildTree(await loadTreeData()),
+  ]
+  setTreeHighlight()
+}
+
+handleRefreshGroup()
 
 // 搜索配置
 let searchConfig = computed(() => ({
@@ -210,7 +275,8 @@ let handleEdit = function ({ row }) {
   if (typeof atom_case_detail === 'string') {
     atom_case_detail = JSON.parse(atom_case_detail)
   }
-  caseData.items = (typeof atom_case_list === 'number' ? [atom_case_list] : atom_case_list.split(','))
+  // caseData.items = (typeof atom_case_list === 'number' ? [atom_case_list] : atom_case_list.split(','))
+  caseData.items = (typeof atom_case_list === 'string' ? atom_case_list.split(',') : atom_case_list)
     .map((v, i) => `${v}_${i}`)
     .map(v => {
       return {
@@ -218,6 +284,7 @@ let handleEdit = function ({ row }) {
         id: v.slice(0, v.lastIndexOf('_')),
       }
     })
+
   window.localStorage.setItem(`caseData-${row.id}`, JSON.stringify(caseData))
   // console.log(row, caseData)
   // return
@@ -240,7 +307,8 @@ const handleRowClick = row => {
   if (typeof atom_case_detail === 'string') {
     atom_case_detail = JSON.parse(atom_case_detail)
   }
-  caseData.items = (typeof atom_case_list === 'number' ? [atom_case_list] : atom_case_list.split(','))
+  // caseData.items = (typeof atom_case_list === 'number' ? [atom_case_list] : atom_case_list.split(','))
+  caseData.items = (typeof atom_case_list === 'string' ? atom_case_list.split(',') : atom_case_list)
     .map((v, i) => `${v}_${i}`)
     .map(v => {
       return {
@@ -252,14 +320,21 @@ const handleRowClick = row => {
   router.push({ path: '/integrationcases/detail', query: { id: row.id, noEdit: true } })
 }
 
-let handleTest = async function ({ row }) {
+let testDialogVisible = ref(false)
+// 点击测试按钮
+let scopeInfo = {}
+const handleTest = async function (scope) {
+  scopeInfo = scope
+  testDialogVisible.value = true
+}
+let testFn = async function (branch) {
   let res = await axios({
     method: 'POST',
     url: '/iftest/case/execute/test',
-    data: { plan_list: [], scene_list: [row.id], test_case: [], branch: 'test' },
+    data: { plan_list: [], scene_list: [scopeInfo.row.id], test_case: [], branch },
   })
   if (res.code === 200) {
-    router.push({ path: '/integrationcases/test', query: { scene_id: row.id, batch_id: res.batch_id } })
+    router.push({ path: '/integrationcases/test', query: { scene_id: scopeInfo.row.id, batch_id: res.batch_id } })
   } else {
     ElMessage({
       type: 'error',
@@ -286,9 +361,16 @@ let getTableData = Utils.debounce(async function () {
     ...unref(tableParams),
   }
   case_group_id === '-1' && delete data.case_group_id
+
+  let { relation, id: atom_list } = router.currentRoute.value.query
+  let url = relation ? '/iftest/case/atom_scene_list' : '/iftest/case/scene/list'
+  if (relation) {
+    data.atom_list = atom_list.split(',')
+  }
+
   let res = await axios({
     method: 'post',
-    url: '/iftest/case/scene/list',
+    url,
     data,
   })
 
@@ -297,7 +379,7 @@ let getTableData = Utils.debounce(async function () {
     case_status_text: v.case_status === 'pass' ? '测试成功' : v.case_status === 'failed' ? '测试失败' : '未测试',
   }))
   pageConfig.total = res.data.total
-},300) 
+}, 300)
 
 // 删除操作
 let handleDelete = function (scope) {

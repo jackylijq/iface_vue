@@ -22,7 +22,7 @@ export default [
   {
     title: '编辑集成用例',
     type: 'view',
-    name: Symbol('integrationcases-add'),
+    name: Symbol('integrationcases-edit'),
     activePath: '/integrationcases/list',
     route: '/integrationcases/edit',
     filePath: 'view/integrationCases/add.vue',
@@ -42,17 +42,20 @@ export default [
   {
     title: '编辑集成用例（新）',
     type: 'view',
-    name: Symbol('integrationcases-add'),
+    name: Symbol('integrationcases-edited'),
     activePath: '/integrationcases/list',
     route: '/integrationcases/edited',
     filePath: 'view/integrationCases/edit.vue',
     inNav: false,
     icon: 'el-icon-box',
+    meta:{
+      keepAlive:true
+    }
   },
   {
     title: '新建集成用例（新）',
     type: 'view',
-    name: Symbol('integrationcases-add'),
+    name: Symbol('integrationcases-added'),
     activePath: '/integrationcases/list',
     route: '/integrationcases/added',
     filePath: 'view/integrationCases/edit.vue',
@@ -62,7 +65,7 @@ export default [
   {
     title: '集成用例详情',
     type: 'view',
-    name: Symbol('integrationcases-add'),
+    name: Symbol('integrationcases-detail'),
     activePath: '/integrationcases/list',
     route: '/integrationcases/detail',
     filePath: 'view/integrationCases/edit.vue',
@@ -72,7 +75,7 @@ export default [
   {
     title: '集成用例测试记录',
     type: 'view',
-    name: Symbol('integrationcases-add'),
+    name: Symbol('integrationcases-record'),
     activePath: '/integrationcases/list',
     route: '/integrationcases/record',
     filePath: 'view/testRecord/IntegratRecord.vue',

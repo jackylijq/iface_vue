@@ -111,7 +111,7 @@ let productList = ref([])
 let getProductList = async function () {
   let res = await axios({
     method: 'POST',
-    url: '/iftest/iface/project/list',
+    url: '/iftest/product/proList',
   })
   productList.value = res.data.datasList.map(v => ({
     label: v.pro_name,
@@ -220,7 +220,7 @@ let emits = defineEmits(['input', 'save'])
 
 let submit = function () {
   let row = unref(tableData).find(v => v.id === unref(selectValue))
-  console.log(selectValue, row);
+  row.result_check = {}
   emits('save', { id: unref(selectValue), row })
   emits('input', false)
 }

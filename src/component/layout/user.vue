@@ -171,8 +171,9 @@ export default {
     outLogin() {
       emitter.emit('clearTap')
       this.loginOut()
-      window.sessionStorage.removeItem('userName')
-      window.location.reload()
+      setTimeout(()=>{
+        window.location.reload()
+      },10)
     },
     clearFileInput(ele) {
       ele.value = ''

@@ -1,9 +1,10 @@
 <template>
   <div class="tree-table">
     <div class="tree-box">
-      <comTree v-bind="treeConfig" />
+      <comTree  ref="refComTree"  v-bind="treeConfig">
+        <template #treeOperate="{ node, data }"><slot name="treeOperate" :node="node" :data="data"></slot></template>
+      </comTree>
     </div>
-
     <div class="table-box">
       <comSearch v-bind="{ ...searchConfig, ...$attrs }">
         <template v-if="$slots.prepend" #prepend>
@@ -49,15 +50,7 @@ export default {
     // background-color: red;
     overflow-y: auto;
     box-sizing: border-box;
-    // border-right: 1px solid #efefef;
-
-    :deep .base-tree {
-      .el-tree-node,
-      .el-tree-node__content {
-        min-height: 40px;
-        line-height: 40px;
-      }
-    }
+    border-right: 1px solid #efefef;
   }
 
   .table-box {

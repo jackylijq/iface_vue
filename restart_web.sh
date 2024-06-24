@@ -25,6 +25,7 @@ echo "进行重启......";
 
 #screen -L -t iftest -mdS starter python3 starter.py;
 #nohup yarn serve > /tmp/qtp_web.log 2>&1 &
+yarn install
 yarn build
 
 echo "重启完成......"

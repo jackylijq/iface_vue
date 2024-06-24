@@ -40,12 +40,9 @@
           <div>{{ scope.row.case_variable }}</div>
         </template>
       </el-table-column>
-      <el-table-column prop="message" label="执行信息" :show-overflow-tooltip="true"  min-width="150px"> </el-table-column>
-      <el-table-column label="环境" > 
-        <template #default>
-          <!-- {{ planData.exe_env }} -->
-        </template>
+      <el-table-column prop="message" label="执行信息" :show-overflow-tooltip="true" min-width="150px">
       </el-table-column>
+      <el-table-column :show-overflow-tooltip="true" prop="env_name" label="环境"> </el-table-column>
 
       <el-table-column :show-overflow-tooltip="true" prop="edit_uid" label="执行人员" />
       <el-table-column :show-overflow-tooltip="true" prop="update_time" label="执行时间" />
@@ -119,7 +116,7 @@ let getTableData = async function () {
   })
   tabbleData.value = res.data.datasList.map(v => ({
     ...v,
-    test_result: v.test_result === 'pass' ? '成功' : v.test_result==='failed'?'失败':'',
+    test_result: v.test_result === 'pass' ? '成功' : v.test_result === 'failed' ? '失败' : '',
   }))
   pageConfig.total = res.data.total
 }

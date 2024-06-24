@@ -73,7 +73,7 @@ let load = async function (node, resolve) {
       method: 'post',
       url: '/iftest/condition/group/list',
       data: {
-        project_line_id: 1,
+        pro_line_id: 1,
         parents_id: 0,
         group_type: 'scene',
       },
@@ -99,7 +99,7 @@ let load = async function (node, resolve) {
       method: 'post',
       url: '/iftest/condition/group/list',
       data: {
-        project_line_id: 1,
+        pro_line_id: 1,
         parents_id: id,
         group_type: 'scene',
       },

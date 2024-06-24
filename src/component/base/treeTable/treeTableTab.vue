@@ -1,11 +1,15 @@
 <template>
   <div class="tree-table">
     <div class="tree-box">
-      <comTree v-bind="treeConfig" />
+      <comTree ref="refComTree" v-bind="treeConfig">
+        <template #treeOperate="{ node, data }">
+          <slot name="treeOperate" :node="node" :data="data"></slot>
+        </template>
+      </comTree>
     </div>
-    <el-tabs v-model:activeName="data.activeName" @tab-click="handleClick" class="table-box">
-      <el-tab-pane label="用例列表" name="0" ref="sectionRef">
-        <div class="tablebox">
+    <el-tabs v-model="data.activeName" @tab-click="handleClick" class="table-box">
+      <el-tab-pane v-for="(pane, index) in computedTabsData" :label="pane.label" :key="index" :name="index">
+        <div v-if="pane.slot === 'table'" class="tablebox">
           <comSearch v-bind="{ ...searchConfig, ...$attrs }">
             <template v-if="$slots.prepend" #prepend>
               <slot name="prepend"></slot>
@@ -14,46 +18,37 @@
           <slot name="table"></slot>
           <el-pagination v-model:currentPage="currentPage" v-bind="{ ...pageConfig, ...$attrs }" />
         </div>
-      </el-tab-pane>
-      <el-tab-pane label="接口详情" name="1" v-if="level.level==3">
-        <slot name="view" v-if="level.level==3"></slot>
+
+        <slot v-else :name="pane.slot"></slot>
       </el-tab-pane>
     </el-tabs>
-
-    
   </div>
 </template>
 <script>
-import { ref,reactive,watch } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import comTree from '../tree/baseTree.vue'
 import comSearch from '../search/comSearch.vue'
 
 export default {
-  props: ['treeConfig', 'searchConfig', 'pageConfig','level'],
+  props: ['treeConfig', 'searchConfig', 'pageConfig', 'tabsData'],
   components: { comTree, comSearch },
-
+  computed: {
+    computedTabsData() {
+      return this.tabsData.filter(v => !v.show || v.show())
+    },
+  },
   setup(props, {}) {
-    watch(
-      props,
-      (newProps) => {
-        if(newProps.level.level !== 3) {
-          console.log(data.activeName,'data.activeName')
-          data.activeName = '0'
-        }
-      }
-    );
-    const sectionRef = ref()
     const currentPage = ref(props.pageConfig.currentPage)
-    const activeName = reactive ('')
-    const data = reactive ({
-      activeName:'0',
+    const activeName = reactive('')
+    const data = reactive({
+      activeName: 0,
     })
     const formData = ref({
-        name:'',
-        address:''
+      name: '',
+      address: '',
     })
     const handleClick = (tab, event) => {
-      data.activeName = tab.index
+      data.activeName = Number(tab.index)
     }
     const tableData = ref([])
     const queryTableData = ref([])
@@ -69,8 +64,7 @@ export default {
         console.log(v)
       },
       handleClick,
-      activeName
-      
+      activeName,
     }
   },
 }
@@ -92,6 +86,7 @@ export default {
 
   .table-box {
     height: inherit;
+    overflow: auto;
     flex-grow: 1;
     width: calc(100% - 220px);
     padding: 0 10px;
@@ -109,36 +104,40 @@ export default {
     }
   }
 
+  ::v-deep .el-tabs__header{
+    margin-bottom: 0;
+  }
+
   .title {
     font-size: 16px;
-    color: #000000D8;
+    color: #000000d8;
     margin: 0 0 20px 20px;
     font-weight: 700;
     position: relative;
-    &::before{
+    &::before {
       position: absolute;
       content: '';
       left: -12px;
       top: 0;
       width: 4px;
       height: 20px;
-      background: #000000D8;
+      background: #000000d8;
     }
   }
-  .headerTitle{
+  .headerTitle {
     font-size: 16px;
     font-weight: 700;
-    color: #000000D8;
-    margin:20px 0 20px 20px;
+    color: #000000d8;
+    margin: 20px 0 20px 20px;
     position: relative;
-    &::before{
+    &::before {
       position: absolute;
       content: '';
       left: -12px;
       top: 0;
       width: 4px;
       height: 20px;
-      background: #000000D8;
+      background: #000000d8;
     }
   }
   .applyTitle {
@@ -146,9 +145,9 @@ export default {
     padding: 10px 0 10px 30px;
     font-weight: 700;
   }
-  .postBtn{
+  .postBtn {
     display: inline-block;
-    background-color: #339E37;
+    background-color: #339e37;
     color: #fff;
     border-radius: 2px;
     width: 72px;
@@ -162,7 +161,6 @@ export default {
     background-color: #fff;
     border-radius: 3px;
     display: inline-block;
-
   }
 }
 </style>

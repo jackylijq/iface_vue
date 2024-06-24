@@ -102,7 +102,7 @@ let getProductList = async function () {
   let res = await axios({
     method: 'POST',
     url: '/iftest/condition/group/list',
-    data: { project_line_id: 1, parents_id: 0, group_type: 'scene' },
+    data: { pro_line_id: 1, parents_id: 0, group_type: 'scene' },
   })
   productList.value = res.data.datasList.map(v => ({
     label: v.group_name,
@@ -123,7 +123,7 @@ let getGroupList = async function (parents_id) {
     url: '/iftest/condition/group/list',
     data: {
       parents_id,
-      project_line_id: 1,
+      pro_line_id: 1,
       group_type: 'scene',
     },
   })
