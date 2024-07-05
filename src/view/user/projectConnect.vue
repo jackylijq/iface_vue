@@ -19,8 +19,7 @@
 </template>
 <script setup>
 import { nextTick, ref, unref } from 'vue'
-import axios from '@/lin/plugin/axios'
-import { getProjectData } from '../evnConfig/api'
+import { getProjectData, getUserProjectData } from '../evnConfig/api'
 import { useUser } from '../evnConfig/uid'
 
 let props = defineProps({
@@ -32,23 +31,11 @@ let tableData = ref([])
 let { uid } = useUser()
 async function getTableData() {
   // 获取登录用户项目
-  let loginRes = await axios({
-    method: 'POST',
-    url: '/iftest/product/userProLine',
-    data: {
-      user_id: uid,
-    },
-  })
+  let loginRes = await getUserProjectData(uid)
   loginProduct.value = loginRes.data.datasList[0]?.pro_line_list || []
 
   // 获取关联用户项目
-  let connectRes = await axios({
-    method: 'POST',
-    url: '/iftest/product/userProLine',
-    data: {
-      user_id: props.user_id,
-    },
-  })
+  let connectRes = await getUserProjectData(props.user_id)
   let connectData = connectRes.data.datasList?.[0] || {}
 
   // 获取全部产品

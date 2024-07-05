@@ -562,7 +562,7 @@ const getMsg = () => {
   const { id: aid, remark: create_remark, group_id, noEdit } = router.currentRoute.value.query || {}
   if (aid) {
     locationKey = `caseData-${aid}`
-    form.id = id
+    form.id = aid
     canEdit.value = noEdit
   } else {
     form.remark = create_remark

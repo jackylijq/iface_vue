@@ -1,7 +1,7 @@
 <template>
   <div>
     参数格式:
-    <el-select v-model="props.formData.req_body_type" class="m-2" placeholder="" size="mini" clearable >
+    <el-select v-model="props.formData.req_body_type" class="m-2" style="width: 200px;" placeholder="" size="mini" clearable >
       <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
     </el-select>
   </div>
@@ -38,5 +38,6 @@ div {
   display: inline-block;
   padding-left: 10px;
   font-size: 12px;
+  width: calc(100% - 200px)
 }
 </style>

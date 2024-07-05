@@ -82,10 +82,10 @@
     ></el-pagination>
 
     <template #footer>
-      <span class="dialog-footer">
+      <div class="dialog-footer" style="margin-top: 25px;">
         <el-button @click="emits('input', false)">取消</el-button>
         <el-button type="primary" @click="submit"> 确定 </el-button>
-      </span>
+      </div>
     </template>
   </el-dialog>
 </template>

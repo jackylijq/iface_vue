@@ -7,7 +7,7 @@
       :pageConfig="pageConfig"
       @size-change="sizeChange"
       @current-change="currentChange"
-      @exec="handleExec(selection)"
+      @exec="testClick(selection)"
       @create="handleCreate"
     >
       <template #treeOperate="{ node, data }">
@@ -31,7 +31,7 @@
           <el-table-column label="操作" width="300">
             <template #default="scope">
               <el-button type="primary" size="small" @click="handleEdit(scope)">编辑</el-button>
-              <el-button type="primary" text size="small" @click="handleExec([scope.row])">执行</el-button>
+              <el-button type="primary" text size="small" @click="testClick([scope.row])">执行</el-button>
               <el-button type="primary" text size="small" @click="handleDelete(scope)">删除</el-button>
               <el-button type="danger" text size="small" @click="routeToResult(scope)">结果查看</el-button>
             </template>
@@ -39,6 +39,8 @@
         </el-table>
       </template>
     </tree-table>
+
+    <atomicCasesTestDialog v-if="testDialogVisible" v-model="testDialogVisible" @submit="testFn" />
   </div>
 </template>
 <script setup>
@@ -47,10 +49,9 @@ import axios from '@/lin/plugin/axios'
 import treeTable from '@/component/base/treeTable/treeTable.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import treeOpearte from '../evnConfig/treeOpearte.vue'
-import DialogExec from './dialogExec.vue'
 import router from '../../router'
 import Utils from 'lin/util/util'
-
+import atomicCasesTestDialog from '../atomicCases/atomic-cases-test-dialog.vue'
 let currentNodeKey = ref('')
 let defaultExpandedKeys = ref([])
 let groupType = 'plan'
@@ -270,40 +271,37 @@ let handleCreate = () => {
   router.push('/testplans/create')
 }
 
-let handleExec = async function (rowList = []) {
-  let env = ref()
+// 点击测试按钮
+let testDialogVisible = ref(false)
+let rowList = []
+const testClick = async function (scope) {
+  rowList = scope
+  testDialogVisible.value = true
+}
 
-  ElMessageBox({
-    title: '提示',
-    message: h(DialogExec, {
-      onInput: v => {
-        env.value = v
-      },
-    }),
-  }).then(async () => {
-    let res = await axios({
-      method: 'POST',
-      url: '/iftest/case/execute/run',
-      data: { plan_list: rowList.map(row => row.id), scene_list: [], test_case: [], branch: env.value },
-    })
-    ElMessage({
-      type: res.code === 200 ? 'success' : 'error',
-      message: res.message,
-    })
-
-    if (res.code === 200) {
-      // 执行成功，跳转执行结果列表，携带批次id
-      setTimeout(() => {
-        router.push({
-          path: '/execresults/list',
-          query: {
-            batch_id: res.batch_id,
-            // plan_id: rowList.map(row => row.id),
-          },
-        })
-      }, 1000)
-    }
+async function testFn(branch) {
+  let res = await axios({
+    method: 'POST',
+    url: '/iftest/case/execute/run',
+    data: { plan_list: rowList.map(row => row.id), scene_list: [], test_case: [], branch },
   })
+  ElMessage({
+    type: res.code === 200 ? 'success' : 'error',
+    message: res.message,
+  })
+
+  if (res.code === 200) {
+    // 执行成功，跳转执行结果列表，携带批次id
+    setTimeout(() => {
+      router.push({
+        path: '/execresults/list',
+        query: {
+          batch_id: res.batch_id,
+          // plan_id: rowList.map(row => row.id),
+        },
+      })
+    }, 1000)
+  }
 }
 
 let seeDetail = row => {

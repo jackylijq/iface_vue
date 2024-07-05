@@ -12,3 +12,13 @@ export async function getProjectData() {
     url: '/iftest/product/proLinList',
   })
 }
+
+export async function getUserProjectData(uid) {
+  return await axios({
+    method: 'POST',
+    url: '/iftest/product/userProLine',
+    data: {
+      user_id: uid,
+    },
+  })
+}

@@ -24,6 +24,7 @@
           <el-table-column :show-overflow-tooltip="true" prop="id" label="ID" width="100px" />
           <el-table-column :show-overflow-tooltip="true" prop="username" label="用户名" />
           <el-table-column :show-overflow-tooltip="true" prop="nickname" label="姓名" />
+          <el-table-column :show-overflow-tooltip="true" prop="pro_line_list_string" label="授权项目" />
           <el-table-column :show-overflow-tooltip="true" prop="email" label="邮箱" />
           <el-table-column :show-overflow-tooltip="true" prop="update_time" label="更新时间" />
           <el-table-column label="操作" width="200" fixed="right">
@@ -58,6 +59,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import treeOpearte from '../evnConfig/treeOpearte.vue'
 import userAdd from './userAdd.vue'
 import projectConnect from './projectConnect.vue'
+import { getProjectData, getUserProjectData } from '../evnConfig/api'
 let groupType = 'user'
 provide('group_type', groupType)
 
@@ -191,6 +193,8 @@ function btnCreate() {
  * 获取列表
  */
 async function getTableData(params = {}) {
+  let projectData = (await getProjectData()).data.datasList
+
   let res = await axios({
     method: 'POST',
     url: '/cms/user/user_list',
@@ -203,7 +207,15 @@ async function getTableData(params = {}) {
     },
   })
   let { datasList, curPage, pageSize, total } = res.data
+
+  // 查询用户的项目
   tableData.value = datasList
+  tableData.value.forEach(ele => {
+    getUserProjectData(ele.id).then(res => {
+      ele.pro_line_list = res.data.datasList[0]?.pro_line_list
+      ele.pro_line_list_string = ele.pro_line_list.map(v => projectData.find(e => e.id === v).pro_line_name)
+    })
+  })
 
   pageConfig.value = {
     curPage,
